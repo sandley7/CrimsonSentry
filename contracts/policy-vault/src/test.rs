@@ -245,6 +245,90 @@ fn rotated_agent_key_is_the_only_one_that_can_pay() {
     assert_eq!(s.vault.get_status().agent, new_agent);
 }
 
+#[test]
+fn agent_cannot_be_rotated_to_owner_or_allowlisted_destination() {
+    let s = setup();
+    assert_eq!(
+        s.vault.try_set_agent(&s.owner),
+        Err(fail(VaultError::InvalidPolicy))
+    );
+    assert_eq!(
+        s.vault.try_set_agent(&s.recipient_ok),
+        Err(fail(VaultError::InvalidPolicy))
+    );
+    assert_eq!(s.vault.get_status().agent, s.agent);
+}
+
+#[test]
+fn owner_rotation_requires_proposal_and_acceptance_by_new_owner() {
+    let s = setup();
+    let new_owner = Address::generate(&s.env);
+
+    s.vault.propose_owner(&new_owner);
+    assert_eq!(s.env.auths()[0].0, s.owner);
+    assert_eq!(s.vault.get_status().owner, s.owner);
+    assert_eq!(s.vault.get_pending_owner(), Some(new_owner.clone()));
+
+    s.vault.accept_owner();
+    assert_eq!(s.env.auths()[0].0, new_owner);
+    assert_eq!(s.vault.get_status().owner, new_owner);
+    assert_eq!(s.vault.get_pending_owner(), None);
+    s.env.set_auths(&[]);
+    assert!(s.vault.try_pause().is_err());
+}
+
+#[test]
+fn owner_rotation_rejects_existing_roles_and_payment_destinations() {
+    let s = setup();
+    for invalid in [&s.owner, &s.agent, &s.recipient_ok] {
+        assert_eq!(
+            s.vault.try_propose_owner(invalid),
+            Err(fail(VaultError::InvalidOwner))
+        );
+    }
+    assert_eq!(s.vault.get_pending_owner(), None);
+}
+
+#[test]
+fn pending_owner_cannot_become_agent_or_payment_destination() {
+    let s = setup();
+    let proposed = Address::generate(&s.env);
+    s.vault.propose_owner(&proposed);
+
+    assert_eq!(
+        s.vault.try_set_agent(&proposed),
+        Err(fail(VaultError::InvalidPolicy))
+    );
+    let invalid_policy = policy(&s.env, core::slice::from_ref(&proposed));
+    assert_eq!(
+        s.vault.try_set_policy(&invalid_policy),
+        Err(fail(VaultError::InvalidPolicy))
+    );
+}
+
+#[test]
+fn owner_can_cancel_a_proposal_and_missing_proposals_return_typed_errors() {
+    let s = setup();
+    assert_eq!(
+        s.vault.try_accept_owner(),
+        Err(fail(VaultError::NoPendingOwner))
+    );
+    assert_eq!(
+        s.vault.try_cancel_owner_change(),
+        Err(fail(VaultError::NoPendingOwner))
+    );
+
+    let proposed = Address::generate(&s.env);
+    s.vault.propose_owner(&proposed);
+    s.vault.cancel_owner_change();
+    assert_eq!(s.vault.get_status().owner, s.owner);
+    assert_eq!(s.vault.get_pending_owner(), None);
+    assert_eq!(
+        s.vault.try_accept_owner(),
+        Err(fail(VaultError::NoPendingOwner))
+    );
+}
+
 // ---------------------------------------------------------------------------
 // Authorization: the right key signs each privileged call
 // ---------------------------------------------------------------------------
@@ -268,6 +352,11 @@ fn owner_functions_require_the_owner_signature() {
     assert_eq!(s.env.auths()[0].0, s.owner);
     s.vault.set_agent(&s.agent);
     assert_eq!(s.env.auths()[0].0, s.owner);
+    let proposed = Address::generate(&s.env);
+    s.vault.propose_owner(&proposed);
+    assert_eq!(s.env.auths()[0].0, s.owner);
+    s.vault.cancel_owner_change();
+    assert_eq!(s.env.auths()[0].0, s.owner);
     s.vault.withdraw(&s.owner, &1);
     assert_eq!(s.env.auths()[0].0, s.owner);
 }
@@ -280,6 +369,9 @@ fn nothing_works_without_signatures() {
     assert!(s.vault.try_pause().is_err());
     assert!(s.vault.try_unpause().is_err());
     assert!(s.vault.try_set_policy(&policy(&s.env, &[])).is_err());
+    assert!(s.vault.try_propose_owner(&s.agent).is_err());
+    assert!(s.vault.try_accept_owner().is_err());
+    assert!(s.vault.try_cancel_owner_change().is_err());
     assert!(s.vault.try_withdraw(&s.agent, &1_000).is_err());
     assert!(s.vault.try_set_agent(&s.agent).is_err());
     assert_eq!(s.token.balance(&s.vault.address), 1_000);
@@ -316,6 +408,8 @@ fn set_policy_rejects_invalid_policies() {
             ..ok.clone()
         },
         policy(&s.env, core::slice::from_ref(&s.vault.address)), // vault paying itself
+        policy(&s.env, core::slice::from_ref(&s.owner)),         // vault paying its owner
+        policy(&s.env, core::slice::from_ref(&s.agent)),         // vault paying its agent
     ];
     for p in bad.iter() {
         assert_eq!(
@@ -337,6 +431,23 @@ fn set_policy_rejects_invalid_policies() {
     );
 
     assert_eq!(s.vault.get_policy(), ok);
+}
+
+#[test]
+#[should_panic(expected = "Error(Contract, #6)")]
+fn constructor_rejects_owner_and_agent_with_the_same_address() {
+    let env = Env::default();
+    let party = Address::generate(&env);
+    let shop = Address::generate(&env);
+    env.register(
+        PolicyVault,
+        (
+            party.clone(),
+            party.clone(),
+            Address::generate(&env),
+            policy(&env, core::slice::from_ref(&shop)),
+        ),
+    );
 }
 
 #[test]
@@ -395,6 +506,14 @@ fn every_state_change_emits_an_event() {
     assert_eq!(vault_events(&s), 1);
     s.vault.set_agent(&s.agent);
     assert_eq!(vault_events(&s), 1);
-    s.vault.withdraw(&s.owner, &1);
+    let proposed = Address::generate(&s.env);
+    s.vault.propose_owner(&proposed);
+    assert_eq!(vault_events(&s), 1);
+    s.vault.cancel_owner_change();
+    assert_eq!(vault_events(&s), 1);
+    s.vault.propose_owner(&proposed);
+    s.vault.accept_owner();
+    assert_eq!(vault_events(&s), 1);
+    s.vault.withdraw(&proposed, &1);
     assert_eq!(vault_events(&s), 1);
 }

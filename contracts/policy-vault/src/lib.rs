@@ -6,8 +6,8 @@
 //! every payment goes through `pay`, which enforces an on-chain policy
 //! (allowlist, per-transaction limit, rolling 24h limit, payment-rate limit).
 //! Any violation panics with a typed error and reverts the whole transaction.
-//! The owner keeps a kill switch (`pause`), can rotate a compromised agent key
-//! (`set_agent`) and can always recover the funds (`withdraw`).
+//! The owner keeps a kill switch (`pause`), can rotate the agent and owner
+//! keys through controlled transitions, and can recover the funds (`withdraw`).
 
 use soroban_sdk::{
     contract, contracterror, contractevent, contractimpl, contracttype, panic_with_error, token,
@@ -30,6 +30,8 @@ pub enum DataKey {
     Paused,
     /// Payments made inside the current rolling 24h window.
     SpendLog,
+    /// New owner awaiting acceptance by its own address.
+    PendingOwner,
 }
 
 #[contracterror]
@@ -45,6 +47,8 @@ pub enum VaultError {
     Paused = 7,
     TooManyPayments = 8,
     NotInitialized = 9,
+    InvalidOwner = 10,
+    NoPendingOwner = 11,
 }
 
 /// The rules the agent must respect. Stored as a single entry so a policy
@@ -116,6 +120,27 @@ pub struct AgentRotated {
 
 #[contractevent]
 #[derive(Clone, Debug, Eq, PartialEq)]
+pub struct OwnerChangeProposed {
+    pub current_owner: Address,
+    pub proposed_owner: Address,
+}
+
+#[contractevent]
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub struct OwnerRotated {
+    pub old_owner: Address,
+    pub new_owner: Address,
+}
+
+#[contractevent]
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub struct OwnerChangeCancelled {
+    pub owner: Address,
+    pub proposed_owner: Address,
+}
+
+#[contractevent]
+#[derive(Clone, Debug, Eq, PartialEq)]
 pub struct Withdrawn {
     #[topic]
     pub to: Address,
@@ -143,7 +168,7 @@ impl PolicyVault {
     /// the pre-deploy checklist); the constructor makes it structurally
     /// impossible.
     pub fn __constructor(env: Env, owner: Address, agent: Address, token: Address, policy: Policy) {
-        validate_policy(&env, &policy);
+        validate_policy(&env, &policy, &owner, &agent, None);
 
         let storage = env.storage().instance();
         storage.set(&DataKey::Owner, &owner);
@@ -230,7 +255,10 @@ impl PolicyVault {
     /// Owner-only: replace the whole policy atomically.
     pub fn set_policy(env: Env, policy: Policy) {
         require_owner(&env);
-        validate_policy(&env, &policy);
+        let owner: Address = read(&env, &DataKey::Owner);
+        let agent: Address = read(&env, &DataKey::Agent);
+        let pending_owner: Option<Address> = env.storage().instance().get(&DataKey::PendingOwner);
+        validate_policy(&env, &policy, &owner, &agent, pending_owner.as_ref());
 
         env.storage().instance().set(&DataKey::Policy, &policy);
         PolicyUpdated { policy }.publish(&env);
@@ -246,16 +274,91 @@ impl PolicyVault {
         set_paused(&env, false);
     }
 
-    /// Owner-only: replace a compromised agent key. The old key can no
-    /// longer spend from the vault.
+    /// Solo el dueño puede rotar la clave; la dirección nueva también debe
+    /// conservar la separación de roles y quedar fuera de la allowlist.
     pub fn set_agent(env: Env, new_agent: Address) {
         require_owner(&env);
 
         let old_agent: Address = read(&env, &DataKey::Agent);
+        let owner: Address = read(&env, &DataKey::Owner);
+        let policy: Policy = read(&env, &DataKey::Policy);
+        let pending_owner: Option<Address> = env.storage().instance().get(&DataKey::PendingOwner);
+        if new_agent == owner
+            || pending_owner.as_ref() == Some(&new_agent)
+            || policy.allowlist.contains(&new_agent)
+        {
+            panic_with_error!(&env, VaultError::InvalidPolicy);
+        }
         env.storage().instance().set(&DataKey::Agent, &new_agent);
         AgentRotated {
             old_agent,
             new_agent,
+        }
+        .publish(&env);
+        bump_instance(&env);
+    }
+
+    /// El dueño actual propone el cambio; la nueva dirección debe aceptarlo.
+    pub fn propose_owner(env: Env, new_owner: Address) {
+        require_owner(&env);
+
+        let owner: Address = read(&env, &DataKey::Owner);
+        let agent: Address = read(&env, &DataKey::Agent);
+        let policy: Policy = read(&env, &DataKey::Policy);
+        if new_owner == owner || new_owner == agent || policy.allowlist.contains(&new_owner) {
+            panic_with_error!(&env, VaultError::InvalidOwner);
+        }
+
+        env.storage()
+            .instance()
+            .set(&DataKey::PendingOwner, &new_owner);
+        OwnerChangeProposed {
+            current_owner: owner,
+            proposed_owner: new_owner,
+        }
+        .publish(&env);
+        bump_instance(&env);
+    }
+
+    /// Solo la dirección propuesta puede aceptar y obtener el control.
+    pub fn accept_owner(env: Env) {
+        let pending_owner: Address = match env.storage().instance().get(&DataKey::PendingOwner) {
+            Some(owner) => owner,
+            None => panic_with_error!(&env, VaultError::NoPendingOwner),
+        };
+        pending_owner.require_auth();
+
+        let old_owner: Address = read(&env, &DataKey::Owner);
+        let agent: Address = read(&env, &DataKey::Agent);
+        let policy: Policy = read(&env, &DataKey::Policy);
+        if pending_owner == agent || policy.allowlist.contains(&pending_owner) {
+            panic_with_error!(&env, VaultError::InvalidOwner);
+        }
+
+        let storage = env.storage().instance();
+        storage.set(&DataKey::Owner, &pending_owner);
+        storage.remove(&DataKey::PendingOwner);
+        OwnerRotated {
+            old_owner,
+            new_owner: pending_owner,
+        }
+        .publish(&env);
+        bump_instance(&env);
+    }
+
+    /// El dueño actual puede cancelar una propuesta antes de que se acepte.
+    pub fn cancel_owner_change(env: Env) {
+        require_owner(&env);
+        let pending_owner: Address = match env.storage().instance().get(&DataKey::PendingOwner) {
+            Some(owner) => owner,
+            None => panic_with_error!(&env, VaultError::NoPendingOwner),
+        };
+        let owner: Address = read(&env, &DataKey::Owner);
+
+        env.storage().instance().remove(&DataKey::PendingOwner);
+        OwnerChangeCancelled {
+            owner,
+            proposed_owner: pending_owner,
         }
         .publish(&env);
         bump_instance(&env);
@@ -281,6 +384,12 @@ impl PolicyVault {
     pub fn get_policy(env: Env) -> Policy {
         bump_instance(&env);
         read(&env, &DataKey::Policy)
+    }
+
+    /// Devuelve la propuesta pendiente para que clientes puedan verificarla.
+    pub fn get_pending_owner(env: Env) -> Option<Address> {
+        bump_instance(&env);
+        env.storage().instance().get(&DataKey::PendingOwner)
     }
 
     /// Full snapshot for the scanner / dashboard.
@@ -371,15 +480,26 @@ fn window(env: &Env, now: u64) -> (Vec<Spend>, i128) {
     (log.slice(first_fresh..), spent)
 }
 
-fn validate_policy(env: &Env, policy: &Policy) {
+fn validate_policy(
+    env: &Env,
+    policy: &Policy,
+    owner: &Address,
+    agent: &Address,
+    pending_owner: Option<&Address>,
+) {
+    // Tercio, tu Claude la cagó aquí xd, pero ya la arreglé: evita convertir al agente o al dueño en destino pagable.
     let valid = policy.tx_limit > 0
         && policy.daily_limit > 0
         && policy.tx_limit <= policy.daily_limit
         && policy.max_payments_per_day > 0
         && policy.max_payments_per_day <= MAX_PAYMENTS_CAP
         && policy.allowlist.len() <= MAX_ALLOWLIST
-        // Paying the vault itself would burn quota without moving funds.
-        && !policy.allowlist.contains(env.current_contract_address());
+        // No permitimos destinos que evadan los roles o quemen cuota sin mover fondos.
+        && !policy.allowlist.contains(env.current_contract_address())
+        && owner != agent
+        && !policy.allowlist.contains(owner)
+        && !policy.allowlist.contains(agent)
+        && pending_owner.is_none_or(|candidate| !policy.allowlist.contains(candidate));
     if !valid {
         panic_with_error!(env, VaultError::InvalidPolicy);
     }
