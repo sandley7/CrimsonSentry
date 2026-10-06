@@ -15,6 +15,7 @@
 #   VAULT_ALIAS  CLI alias for the new vault      (default crimson-vault)
 #   OUT          file with the deployment ids     (default evidence/deployment.env)
 #   RECOVERY_ADDRESS  public address that withdraw pays (default: identity cs-recovery)
+#   CEILING_TX_XLM / CEILING_DAILY_XLM  immutable policy ceilings (default 20 / 50 XLM)
 set -euo pipefail
 cd "$(dirname "$0")/.."
 source scripts/env.sh
@@ -30,6 +31,8 @@ MIN_AMOUNT=$((1 * STROOPS))
 TX_LIMIT=$((10 * STROOPS))
 DAILY_LIMIT=$((25 * STROOPS))
 MAX_PAYMENTS=5
+CEILING_TX=$((${CEILING_TX_XLM:-20} * STROOPS))
+CEILING_DAILY=$((${CEILING_DAILY_XLM:-50} * STROOPS))
 VAULT_FUNDING=$((100 * STROOPS))
 
 IDS=(cs-owner "$AGENT_ID" cs-shop)
@@ -53,13 +56,15 @@ stellar contract build
 echo "==> Deploying Policy Vault"
 POLICY=$(printf '{"min_amount":"%s","tx_limit":"%s","daily_limit":"%s","max_payments_per_day":%s,"allowlist":["%s"]}' \
   "$MIN_AMOUNT" "$TX_LIMIT" "$DAILY_LIMIT" "$MAX_PAYMENTS" "$SHOP")
+CEILINGS=$(printf '{"max_tx_limit":"%s","max_daily_limit":"%s"}' "$CEILING_TX" "$CEILING_DAILY")
 VAULT=$(stellar contract deploy \
   --wasm target/wasm32v1-none/release/policy_vault.wasm \
   --source-account cs-owner \
   --network "$NET" \
   --alias "$VAULT_ALIAS" \
   -- \
-  --owner "$OWNER" --agent "$AGENT" --token "$XLM" --policy "$POLICY" --recovery "$RECOVERY")
+  --owner "$OWNER" --agent "$AGENT" --token "$XLM" --policy "$POLICY" --recovery "$RECOVERY" \
+  --ceilings "$CEILINGS")
 
 echo "==> Funding vault with $((VAULT_FUNDING / STROOPS)) XLM"
 stellar contract invoke --id "$XLM" --source-account cs-owner --network "$NET" \
@@ -72,6 +77,8 @@ OWNER=$OWNER
 AGENT=$AGENT
 SHOP=$SHOP
 RECOVERY=$RECOVERY
+CEILING_TX=$CEILING_TX
+CEILING_DAILY=$CEILING_DAILY
 EOF
 
 echo

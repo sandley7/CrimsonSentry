@@ -1,0 +1,21 @@
+{
+  "description": "Escenario de la v2: un pago por debajo del mínimo (rechazado on-chain) y un pago válido. Montos en XLM.",
+  "addresses": {},
+  "steps": [
+    {
+      "id": "monto-minimo",
+      "title": "Agente manipulado: pago de 0,5 XLM, por debajo del mínimo de 1 XLM",
+      "to": "shop",
+      "amount": 0.5,
+      "expect": "#12 UnderMinAmount"
+    },
+    {
+      "id": "pago-valido",
+      "title": "Pago legítimo: 3 XLM al comercio registrado",
+      "to": "shop",
+      "amount": 3,
+      "expect": "success"
+    }
+  ],
+  "afterPause": []
+}

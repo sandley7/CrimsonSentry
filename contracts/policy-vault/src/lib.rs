@@ -35,6 +35,8 @@ pub enum DataKey {
     PendingOwner,
     /// Fixed destination of `withdraw`. Set once by the constructor.
     Recovery,
+    /// Hard ceilings `set_policy` can never exceed. Set once by the constructor.
+    Ceilings,
 }
 
 #[contracterror]
@@ -54,6 +56,7 @@ pub enum VaultError {
     NoPendingOwner = 11,
     UnderMinAmount = 12,
     InvalidRecovery = 13,
+    PolicyOverCeiling = 14,
 }
 
 /// The rules the agent must respect. Stored as a single entry so a policy
@@ -76,6 +79,16 @@ pub struct Policy {
     pub allowlist: Vec<Address>,
 }
 
+/// Upper bounds fixed at deploy time. Whoever holds the owner key can loosen
+/// the policy, but never past these numbers, so the loss per 24h window is
+/// bounded by `max_daily_limit` even if the owner key is stolen.
+#[contracttype]
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub struct Ceilings {
+    pub max_tx_limit: i128,
+    pub max_daily_limit: i128,
+}
+
 #[contracttype]
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct Spend {
@@ -91,6 +104,7 @@ pub struct Status {
     pub agent: Address,
     pub token: Address,
     pub recovery: Address,
+    pub ceilings: Ceilings,
     pub paused: bool,
     pub policy: Policy,
     pub balance: i128,
@@ -179,7 +193,8 @@ impl PolicyVault {
     ///
     /// `recovery` is where `withdraw` pays, forever: there is no setter. It must
     /// be a third address (neither the owner, the agent nor this vault), ideally
-    /// a cold or multisig account.
+    /// a cold or multisig account. `ceilings` bound every future policy: see
+    /// `Ceilings`.
     pub fn __constructor(
         env: Env,
         owner: Address,
@@ -187,8 +202,12 @@ impl PolicyVault {
         token: Address,
         policy: Policy,
         recovery: Address,
+        ceilings: Ceilings,
     ) {
-        validate_policy(&env, &policy, &owner, &agent, None);
+        if ceilings.max_tx_limit <= 0 || ceilings.max_tx_limit > ceilings.max_daily_limit {
+            panic_with_error!(&env, VaultError::InvalidPolicy);
+        }
+        validate_policy(&env, &policy, &owner, &agent, None, &ceilings);
         if recovery == owner || recovery == agent || recovery == env.current_contract_address() {
             panic_with_error!(&env, VaultError::InvalidRecovery);
         }
@@ -198,6 +217,7 @@ impl PolicyVault {
         storage.set(&DataKey::Agent, &agent);
         storage.set(&DataKey::Token, &token);
         storage.set(&DataKey::Recovery, &recovery);
+        storage.set(&DataKey::Ceilings, &ceilings);
         storage.set(&DataKey::Policy, &policy);
         storage.set(&DataKey::Paused, &false);
         bump_instance(&env);
@@ -285,7 +305,15 @@ impl PolicyVault {
         let owner: Address = read(&env, &DataKey::Owner);
         let agent: Address = read(&env, &DataKey::Agent);
         let pending_owner: Option<Address> = env.storage().instance().get(&DataKey::PendingOwner);
-        validate_policy(&env, &policy, &owner, &agent, pending_owner.as_ref());
+        let ceilings: Ceilings = read(&env, &DataKey::Ceilings);
+        validate_policy(
+            &env,
+            &policy,
+            &owner,
+            &agent,
+            pending_owner.as_ref(),
+            &ceilings,
+        );
 
         env.storage().instance().set(&DataKey::Policy, &policy);
         PolicyUpdated { policy }.publish(&env);
@@ -447,6 +475,7 @@ impl PolicyVault {
             agent: read(&env, &DataKey::Agent),
             token: read(&env, &DataKey::Token),
             recovery: read(&env, &DataKey::Recovery),
+            ceilings: read(&env, &DataKey::Ceilings),
             paused: read(&env, &DataKey::Paused),
             balance: token_client(&env).balance(&env.current_contract_address()),
             spent_last_24h: spent,
@@ -529,6 +558,7 @@ fn validate_policy(
     owner: &Address,
     agent: &Address,
     pending_owner: Option<&Address>,
+    ceilings: &Ceilings,
 ) {
     // Keep the agent and the owner out of the payable destinations, and the
     // two roles apart.
@@ -548,5 +578,9 @@ fn validate_policy(
         && pending_owner.is_none_or(|candidate| !policy.allowlist.contains(candidate));
     if !valid {
         panic_with_error!(env, VaultError::InvalidPolicy);
+    }
+    // Immutable ceilings: no policy, however the owner sets it, goes past them.
+    if policy.tx_limit > ceilings.max_tx_limit || policy.daily_limit > ceilings.max_daily_limit {
+        panic_with_error!(env, VaultError::PolicyOverCeiling);
     }
 }

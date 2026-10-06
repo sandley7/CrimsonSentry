@@ -21,8 +21,9 @@ source scripts/env.sh
 NET=testnet
 RUN=$(date +%Y%m%d-%H%M%S)
 AGENT_ID="cs-demo-agent-$RUN"
-OUT="evidence/demo-$RUN.env"
-EVID="evidence/agent-demo-$RUN.md"
+EVIDENCE_DIR=${EVIDENCE_DIR:-evidence}
+OUT="$EVIDENCE_DIR/demo-$RUN.env"
+EVID="$EVIDENCE_DIR/agent-demo-$RUN.md"
 
 step() {
   if [ "${STEP:-0}" = 1 ]; then read -rp $'\n[Enter] '"$1"; else printf '\n==> %s\n' "$1"; fi
@@ -38,9 +39,9 @@ echo "Agente: $AGENT"
 
 step "2. Vault nuevo para ese agente (10 XLM por pago, 25 XLM por 24h, 5 pagos por 24h)"
 AGENT_ID="$AGENT_ID" VAULT_ALIAS="crimson-demo-$RUN" OUT="$OUT" \
-  bash scripts/deploy-testnet.sh > "evidence/.deploy-$RUN.log" 2>&1 \
-  || { tail -20 "evidence/.deploy-$RUN.log"; exit 1; }
-rm -f "evidence/.deploy-$RUN.log"
+  bash scripts/deploy-testnet.sh > "$EVIDENCE_DIR/.deploy-$RUN.log" 2>&1 \
+  || { tail -20 "$EVIDENCE_DIR/.deploy-$RUN.log"; exit 1; }
+rm -f "$EVIDENCE_DIR/.deploy-$RUN.log"
 source "$OUT"
 echo "Vault: $VAULT"
 echo "       https://stellar.expert/explorer/testnet/contract/$VAULT"
@@ -54,7 +55,7 @@ stellar tx new payment --source-account "$AGENT_ID" --destination "$OWNER" \
 scan
 
 step "5. El agente ejecuta el guion como cliente comprometido"
-(cd tools && OPEN_FIRST_REJECTION=1 node agent/run.js --vault "$VAULT" --identity "$AGENT_ID" --force --evidence "../$EVID")
+(cd tools && OPEN_FIRST_REJECTION=${OPEN_FIRST_REJECTION:-1} node agent/run.js --vault "$VAULT" --identity "$AGENT_ID" --force --evidence "../$EVID")
 
 step "6. Escáner: el dueño ve los intentos rechazados"
 scan

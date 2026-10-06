@@ -1,7 +1,7 @@
 #![cfg(test)]
 extern crate std;
 
-use super::{Policy, PolicyVault, PolicyVaultClient, VaultError};
+use super::{Ceilings, Policy, PolicyVault, PolicyVaultClient, VaultError};
 use soroban_sdk::{
     testutils::{Address as _, Events, Ledger},
     token::{StellarAssetClient, TokenClient},
@@ -19,6 +19,14 @@ struct Setup<'a> {
     recipient_ok: Address,
     token: TokenClient<'a>,
     vault: PolicyVaultClient<'a>,
+}
+
+/// Ceilings used by every test vault: twice the default policy.
+fn ceilings() -> Ceilings {
+    Ceilings {
+        max_tx_limit: 200,
+        max_daily_limit: 500,
+    }
 }
 
 fn policy(env: &Env, allowlist: &[Address]) -> Policy {
@@ -60,6 +68,7 @@ fn setup() -> Setup<'static> {
             sac.address(),
             policy(&env, core::slice::from_ref(&recipient_ok)),
             recovery.clone(),
+            ceilings(),
         ),
     );
     let vault = PolicyVaultClient::new(&env, &vault_id);
@@ -460,6 +469,7 @@ fn constructor_rejects_owner_and_agent_with_the_same_address() {
             Address::generate(&env),
             policy(&env, core::slice::from_ref(&shop)),
             Address::generate(&env),
+            ceilings(),
         ),
     );
 }
@@ -477,7 +487,7 @@ fn constructor_rejects_invalid_policy() {
         allowlist: Vec::new(&env),
     };
     let r = Address::generate(&env);
-    env.register(PolicyVault, (a.clone(), a.clone(), a, bad, r));
+    env.register(PolicyVault, (a.clone(), a.clone(), a, bad, r, ceilings()));
 }
 
 #[test]
@@ -490,6 +500,7 @@ fn status_reports_what_the_scanner_needs() {
     assert_eq!(st.owner, s.owner);
     assert_eq!(st.agent, s.agent);
     assert_eq!(st.recovery, s.recovery);
+    assert_eq!(st.ceilings, ceilings());
     assert_eq!(st.token, s.token.address);
     assert!(!st.paused);
     assert_eq!(st.balance, 860);
@@ -612,6 +623,7 @@ fn constructor_rejects_agent_as_recovery() {
             Address::generate(&env),
             policy(&env, core::slice::from_ref(&shop)),
             agent,
+            ceilings(),
         ),
     );
 }
@@ -631,6 +643,7 @@ fn constructor_rejects_owner_as_recovery() {
             Address::generate(&env),
             policy(&env, core::slice::from_ref(&shop)),
             owner,
+            ceilings(),
         ),
     );
 }
@@ -645,5 +658,119 @@ fn recovery_address_cannot_become_agent_or_owner() {
     assert_eq!(
         s.vault.try_propose_owner(&s.recovery),
         Err(fail(VaultError::InvalidOwner))
+    );
+}
+
+// ---------------------------------------------------------------------------
+// v2: immutable ceilings
+// ---------------------------------------------------------------------------
+
+#[test]
+fn set_policy_cannot_go_past_the_ceilings() {
+    let s = setup();
+    let ok = policy(&s.env, core::slice::from_ref(&s.recipient_ok));
+    // Past the per-payment ceiling (200) and past the daily ceiling (500).
+    assert_eq!(
+        s.vault.try_set_policy(&Policy {
+            tx_limit: 201,
+            daily_limit: 400,
+            ..ok.clone()
+        }),
+        Err(fail(VaultError::PolicyOverCeiling))
+    );
+    assert_eq!(
+        s.vault.try_set_policy(&Policy {
+            tx_limit: 100,
+            daily_limit: 501,
+            ..ok.clone()
+        }),
+        Err(fail(VaultError::PolicyOverCeiling))
+    );
+    assert_eq!(s.vault.get_policy(), ok);
+}
+
+#[test]
+fn set_policy_accepts_values_exactly_at_the_ceilings() {
+    let s = setup();
+    let at_ceiling = Policy {
+        tx_limit: 200,
+        daily_limit: 500,
+        ..policy(&s.env, core::slice::from_ref(&s.recipient_ok))
+    };
+    s.vault.set_policy(&at_ceiling);
+    assert_eq!(s.vault.get_policy(), at_ceiling);
+}
+
+/// With the ceilings in place a stolen owner key loosens the policy as far as
+/// the ceilings and no further: the agent can still not pay past them.
+#[test]
+fn loosened_policy_still_bounds_what_can_leave_in_24h() {
+    let s = setup();
+    s.vault.set_policy(&Policy {
+        tx_limit: 200,
+        daily_limit: 500,
+        max_payments_per_day: 100,
+        ..policy(&s.env, core::slice::from_ref(&s.recipient_ok))
+    });
+    s.vault.pay(&s.recipient_ok, &200);
+    s.vault.pay(&s.recipient_ok, &200);
+    s.vault.pay(&s.recipient_ok, &100);
+    assert_eq!(
+        s.vault.try_pay(&s.recipient_ok, &1),
+        Err(fail(VaultError::OverDailyLimit))
+    );
+    assert_eq!(s.token.balance(&s.recipient_ok), 500);
+}
+
+#[test]
+#[should_panic(expected = "Error(Contract, #14)")]
+fn constructor_rejects_a_policy_over_the_ceilings() {
+    let env = Env::default();
+    let (owner, agent, recovery, shop) = (
+        Address::generate(&env),
+        Address::generate(&env),
+        Address::generate(&env),
+        Address::generate(&env),
+    );
+    env.register(
+        PolicyVault,
+        (
+            owner,
+            agent,
+            Address::generate(&env),
+            Policy {
+                tx_limit: 300,
+                daily_limit: 400,
+                ..policy(&env, core::slice::from_ref(&shop))
+            },
+            recovery,
+            ceilings(),
+        ),
+    );
+}
+
+#[test]
+#[should_panic(expected = "Error(Contract, #6)")]
+fn constructor_rejects_incoherent_ceilings() {
+    let env = Env::default();
+    let (owner, agent, recovery, shop) = (
+        Address::generate(&env),
+        Address::generate(&env),
+        Address::generate(&env),
+        Address::generate(&env),
+    );
+    env.register(
+        PolicyVault,
+        (
+            owner,
+            agent,
+            Address::generate(&env),
+            policy(&env, core::slice::from_ref(&shop)),
+            recovery,
+            Ceilings {
+                max_tx_limit: 500,
+                max_daily_limit: 100,
+            },
+        ),
     );
 }
