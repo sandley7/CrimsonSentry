@@ -266,8 +266,8 @@ source scripts/env.sh        # Git Bash
 ### Tests
 
 ```bash
-cargo test                   # contrato: 18 tests
-cd tools && npm test         # escáner: 10 tests
+cargo test                   # contrato: 19 tests
+cd tools && npm test         # escáner: 11 tests
 ```
 
 Los tests del contrato cubren:
