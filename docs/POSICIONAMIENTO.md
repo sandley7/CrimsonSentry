@@ -34,7 +34,7 @@ El plan para comprobar estas hipótesis está en [VALIDACION.md](VALIDACION.md).
 | **Safe** (módulo de allowance) y **Zodiac Roles** | En la cadena, en contratos de EVM | EVM | Allowance por token con reinicio por intervalo; permisos por rol | Mismo enfoque on-chain, pero no están en Stellar |
 | **Delegaciones ERC-7715 / ERC-7710** y claves de sesión | En la cadena, en cuentas inteligentes de EVM | EVM | Permisos acotados por contrato, función, monto y tiempo | Ídem: no están en Stellar |
 | **OpenZeppelin, cuentas inteligentes de Stellar** | En la cadena, en Stellar, como política de una cuenta-contrato | Stellar | Política de límite de gasto en ventana móvil y políticas de umbral (multifirma). En la documentación consultada **no aparece** una política de lista de destinos | Es la alternativa más cercana y una **base posible** para la arquitectura B (ver abajo) |
-| **CrimsonSentry** | En la cadena, en Stellar, en un vault que custodia los fondos | Stellar (testnet) | Lista de destinos, límite por pago, límite en 24 h móviles, máximo de pagos, pausa, rotación del agente, retiro del dueño. Más un escáner de 16 chequeos | Ver siguiente sección |
+| **CrimsonSentry** | En la cadena, en Stellar, en un vault que custodia los fondos | Stellar (testnet) | Lista de destinos, límite por pago, límite en 24 h móviles, máximo de pagos, pausa, rotación del agente, retiro del dueño. Más un escáner de 17 chequeos | Ver siguiente sección |
 
 ## Qué nos diferencia, y qué no
 

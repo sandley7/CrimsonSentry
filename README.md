@@ -21,7 +21,7 @@
 | Pieza | Qué hace | Dónde |
 |---|---|---|
 | **Policy Vault** | Contrato Soroban que custodia los fondos del agente y aplica la política en cada pago | [`contracts/policy-vault`](contracts/policy-vault) |
-| **Escáner** | CLI que audita al agente y su vault: semáforo de 16 chequeos mapeado al OWASP Agentic Top 10 (2026) | [`tools/scanner`](tools/scanner) |
+| **Escáner** | CLI que audita al agente y su vault: semáforo de 17 chequeos mapeado al OWASP Agentic Top 10 (2026) | [`tools/scanner`](tools/scanner) |
 | **Agente demo** | Reproduce los intentos de pago de un agente (legítimos y maliciosos) contra el vault | [`tools/agent`](tools/agent) |
 
 ---
@@ -139,6 +139,7 @@ Código de salida: `0` verde · `1` amarillo · `2` rojo.
 | C14 | Token custodiado | No es el SAC oficial de XLM | ASI04 |
 | C15 | Vida del contrato (TTL) | Archivado / quedan menos de 7 días | ASI08 |
 | C16 | Fondos del vault | Menos que un pago máximo | — |
+| C17 | Dirección de recuperación y techos (solo v2; en la v1 sale 🟡) | Recuperación igual al dueño o al agente, cuenta inexistente o de una sola clave, o un techo diario que alcanza para vaciar el vault | ASI03 · ASI09 |
 
 Sobre el vault principal, hoy da **🔴 en C1**: la cuenta del agente conserva ~9,999 XLM de Friendbot, 125 veces lo que protege el vault. Es la [limitación 1](#limitaciones-conocidas) vista en vivo. En la demo del agente, devolver ese excedente al dueño pasa C1 a 🟢.
 
@@ -266,8 +267,8 @@ source scripts/env.sh        # Git Bash
 ### Tests
 
 ```bash
-cargo test                   # contrato: 19 tests
-cd tools && npm test         # escáner: 11 tests
+cargo test                   # contrato: 37 tests (v2)
+cd tools && npm test         # escáner: 16 tests
 ```
 
 Los tests del contrato cubren:

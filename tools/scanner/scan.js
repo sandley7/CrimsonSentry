@@ -73,12 +73,13 @@ async function collect(conn) {
   await Promise.all(status.policy.allowlist.filter((a) => a.startsWith('G')).map(async (a) => {
     allowlistAccounts[a] = (await getAccount(conn, a)) !== null;
   }));
+  const recoveryAccount = status.recovery?.startsWith('G') ? await getAccount(conn, status.recovery) : undefined;
   const expectedWasm = args['expected-wasm']
     ?? (existsSync(DEFAULT_WASM_FILE) ? readFileSync(DEFAULT_WASM_FILE, 'utf8').trim() : null);
   const feeBuffer = BigInt(Math.round(feeBufferXlm * Number(STROOPS_PER_XLM)));
   return {
     status, contractInfo, baseReserve, agentAccount, ownerAccount, agentActivity,
-    allowlistAccounts, expectedWasm, feeBuffer, nativeSac: nativeSacId(conn), now: Date.now(),
+    allowlistAccounts, recoveryAccount, expectedWasm, feeBuffer, nativeSac: nativeSacId(conn), now: Date.now(),
   };
 }
 
