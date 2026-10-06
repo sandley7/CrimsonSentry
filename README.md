@@ -9,7 +9,10 @@
 
 **Stellar Odyssey Perú · Track 04 — Research, Cryptography & Security Architecture** (cruzado con Track 01, AI Agents)
 
-Equipo: Santiago Fabrizio Lindley Santivañez · José Fernando Escajadillo Gaspar · Cesar Adrian Guevara Salcedo — Licencia [MIT](LICENSE)
+**Líder y mantenedor:** Santiago Fabrizio Lindley Santivañez ([@sandley7](https://github.com/sandley7))  
+**Autores originales:** Santiago Fabrizio Lindley Santivañez · José Fernando Escajadillo Gaspar ([@JoseEscajadillo](https://github.com/JoseEscajadillo)) · Cesar Adrian Guevara Salcedo ([@CyberStill-GmbH](https://github.com/CyberStill-GmbH)) — Licencia [MIT](LICENSE)
+
+> **Origen:** CrimsonSentry nació en el hackathon Stellar Odyssey Perú 2026 como proyecto de los tres autores, en [JoseEscajadillo/CrimsonSentry](https://github.com/JoseEscajadillo/CrimsonSentry). Este repositorio continúa ese trabajo con el historial de commits intacto, de modo que cada autor conserva su autoría. La rama `harden-policy-and-docs` conserva la propuesta de Cesar (PR #2 del repositorio original), todavía sin integrar.
 
 🎬 **Video demo:** https://www.youtube.com/watch?v=lgQYx48JnV0 · 🎤 **Video pitch:** https://www.youtube.com/watch?v=Lhr5abKy-eI
 

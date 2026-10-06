@@ -38,7 +38,7 @@ Los scripts interactúan con Stellar testnet y crean transacciones. Revisa sus p
 
 El contrato desplegado no tiene una función para cambiar de dueño. Para rotar la clave del dueño sin redesplegar, conviene que la cuenta del dueño sea multifirma (`SetOptions`): se agrega un firmante nuevo y se retira el anterior, sin tocar el contrato.
 
-El cambio de dueño en dos pasos (`propose_owner`, `accept_owner` y `cancel_owner_change`) está propuesto en el PR #2. Como el contrato no admite upgrades, adoptarlo requiere desplegar un vault nuevo.
+El cambio de dueño en dos pasos (`propose_owner`, `accept_owner` y `cancel_owner_change`) está propuesto en la rama `harden-policy-and-docs`. Como el contrato no admite upgrades, adoptarlo requiere desplegar un vault nuevo.
 
 ## Demos
 

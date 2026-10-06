@@ -31,7 +31,7 @@ No debe utilizarse para custodiar fondos reales. El informe de Scout es una audi
 |---|---|---|
 | Clave del agente comprometida | Allowlist, límites por operación y ventana, máximo de pagos, pausa y rotación. | El atacante puede consumir la cuota del día y bloquear pagos legítimos hasta que expire. |
 | Pago directo desde el saldo del agente | C1 y C10 del escáner señalan saldo y actividad observables. | El escáner detecta; no bloquea. El saldo propio permite evadir el vault. |
-| Clave del dueño comprometida | C12 recomienda multifirma. El cambio de dueño en dos pasos está propuesto en el PR #2 (no desplegado). | Una clave de dueño comprometida puede retirar todo; el contrato desplegado no tiene función para cambiar de dueño ni límite de retiro. |
+| Clave del dueño comprometida | C12 recomienda multifirma. El cambio de dueño en dos pasos está propuesto en la rama `harden-policy-and-docs` (no desplegado). | Una clave de dueño comprometida puede retirar todo; el contrato desplegado no tiene función para cambiar de dueño ni límite de retiro. |
 | Pago a un destino no autorizado | Validación on-chain de la allowlist, que excluye al propio vault; el escáner (C5) alerta si el dueño o el agente figuran en ella. | Un destino permitido puede ser malicioso o cambiar su comportamiento si es otro contrato. |
 | Reintentos o pagos en paralelo | Contabilidad y validación ocurren en la ejecución on-chain; los errores revierten la transacción. | Los fallos pueden consumir comisiones del agente y su cuota de intentos puede agotarse. |
 | Caducidad del almacenamiento | Renovación del TTL de instancia en las llamadas; el log renueva TTL en cada pago. | Operación prolongada sin invocaciones requiere vigilar la vida del contrato y restaurarlo si caduca. |
@@ -47,8 +47,8 @@ No debe utilizarse para custodiar fondos reales. El informe de Scout es una audi
 - La suma del gasto usa operaciones comprobadas y el perfil release activa `overflow-checks`.
 - El gasto se registra antes de transferir; la atomicidad de Stellar revierte ambas operaciones ante un fallo.
 - La pausa no impide el retiro administrativo.
-- Propuesto en el PR #2 (no desplegado): cambio de dueño en dos pasos, con autorización de la dirección entrante y cancelación antes de aceptar.
-- Propuesto en el PR #2 (no desplegado): validación on-chain de que dueño y agente son direcciones distintas y de que ninguno de los dos figura en la allowlist.
+- Propuesto en la rama `harden-policy-and-docs` (no desplegado; [PR #2 del repositorio original](https://github.com/JoseEscajadillo/CrimsonSentry/pull/2)): cambio de dueño en dos pasos, con autorización de la dirección entrante y cancelación antes de aceptar.
+- Propuesto en la rama `harden-policy-and-docs` (no desplegado): validación on-chain de que dueño y agente son direcciones distintas y de que ninguno de los dos figura en la allowlist.
 - La integración continua compila, prueba y ejecuta análisis estático.
 
 ## Respuesta a vulnerabilidades
