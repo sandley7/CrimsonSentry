@@ -16,7 +16,7 @@
 
 🎬 **Video demo:** https://www.youtube.com/watch?v=lgQYx48JnV0 · 🎤 **Video pitch:** https://www.youtube.com/watch?v=Lhr5abKy-eI
 
-📐 Esquema completo, con diagramas de flujo: [`docs/ARQUITECTURA.md`](docs/ARQUITECTURA.md) · Seguridad: [`docs/SECURITY.md`](docs/SECURITY.md) · Operación: [`docs/OPERATIONS.md`](docs/OPERATIONS.md) · Escáner: [`docs/SCANNER.md`](docs/SCANNER.md)
+📐 Esquema completo, con diagramas de flujo: [`docs/ARQUITECTURA.md`](docs/ARQUITECTURA.md) · Seguridad: [`docs/SECURITY.md`](docs/SECURITY.md) · Operación: [`docs/OPERATIONS.md`](docs/OPERATIONS.md) · Escáner: [`docs/SCANNER.md`](docs/SCANNER.md) · Para quién es y frente a qué alternativas: [`docs/POSICIONAMIENTO.md`](docs/POSICIONAMIENTO.md) · Plan de validación: [`docs/VALIDACION.md`](docs/VALIDACION.md)
 
 | Pieza | Qué hace | Dónde |
 |---|---|---|
