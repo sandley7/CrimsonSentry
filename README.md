@@ -307,5 +307,5 @@ El ataque de pagos paralelos prepara dos pagos de 10 XLM; cada uno por separado 
 - [x] Demo del agente con rechazos on-chain (Día 5)
 - [ ] Arquitectura B: *contract account* con `__check_auth`, compatible con x402/MPP
 - [ ] Relayer con fee-bump para que el agente no necesite saldo propio
-- [ ] v2 del contrato: agente y dueño fuera de la allowlist, monto mínimo, cambio de dueño en dos pasos
+- [ ] v2 del contrato: agente y dueño fuera de la allowlist, monto mínimo, cambio de dueño en dos pasos y dirección de recuperación fija. **Escrita y probada en la rama [`v2-contract`](docs/V2.md); falta desplegarla y registrar su evidencia**
 - [ ] Keeper de TTL e indexador de eventos con pausa automática ante anomalías

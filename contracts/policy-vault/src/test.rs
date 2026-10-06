@@ -15,6 +15,7 @@ struct Setup<'a> {
     env: Env,
     owner: Address,
     agent: Address,
+    recovery: Address,
     recipient_ok: Address,
     token: TokenClient<'a>,
     vault: PolicyVaultClient<'a>,
@@ -26,6 +27,7 @@ fn policy(env: &Env, allowlist: &[Address]) -> Policy {
         list.push_back(a.clone());
     }
     Policy {
+        min_amount: 1,
         tx_limit: 100,
         daily_limit: 250,
         max_payments_per_day: 5,
@@ -34,7 +36,7 @@ fn policy(env: &Env, allowlist: &[Address]) -> Policy {
 }
 
 /// Deploys a test SAC token, funds a fresh vault with 1,000 units and sets
-/// the policy: tx_limit = 100, daily_limit = 250 (rolling 24h),
+/// the policy: min_amount = 1, tx_limit = 100, daily_limit = 250 (rolling 24h),
 /// max 5 payments / 24h, allowlist = [recipient_ok].
 fn setup() -> Setup<'static> {
     let env = Env::default();
@@ -43,6 +45,7 @@ fn setup() -> Setup<'static> {
 
     let owner = Address::generate(&env);
     let agent = Address::generate(&env);
+    let recovery = Address::generate(&env);
     let recipient_ok = Address::generate(&env);
     let token_admin = Address::generate(&env);
 
@@ -56,6 +59,7 @@ fn setup() -> Setup<'static> {
             agent.clone(),
             sac.address(),
             policy(&env, core::slice::from_ref(&recipient_ok)),
+            recovery.clone(),
         ),
     );
     let vault = PolicyVaultClient::new(&env, &vault_id);
@@ -66,6 +70,7 @@ fn setup() -> Setup<'static> {
         env,
         owner,
         agent,
+        recovery,
         recipient_ok,
         token,
         vault,
@@ -227,8 +232,8 @@ fn pause_blocks_the_agent_and_unpause_restores_it() {
 fn owner_can_withdraw_everything_even_while_paused() {
     let s = setup();
     s.vault.pause();
-    s.vault.withdraw(&s.owner, &1_000);
-    assert_eq!(s.token.balance(&s.owner), 1_000);
+    s.vault.withdraw(&1_000);
+    assert_eq!(s.token.balance(&s.recovery), 1_000);
     assert_eq!(s.token.balance(&s.vault.address), 0);
 }
 
@@ -357,7 +362,7 @@ fn owner_functions_require_the_owner_signature() {
     assert_eq!(s.env.auths()[0].0, s.owner);
     s.vault.cancel_owner_change();
     assert_eq!(s.env.auths()[0].0, s.owner);
-    s.vault.withdraw(&s.owner, &1);
+    s.vault.withdraw(&1);
     assert_eq!(s.env.auths()[0].0, s.owner);
 }
 
@@ -372,7 +377,7 @@ fn nothing_works_without_signatures() {
     assert!(s.vault.try_propose_owner(&s.agent).is_err());
     assert!(s.vault.try_accept_owner().is_err());
     assert!(s.vault.try_cancel_owner_change().is_err());
-    assert!(s.vault.try_withdraw(&s.agent, &1_000).is_err());
+    assert!(s.vault.try_withdraw(&1_000).is_err());
     assert!(s.vault.try_set_agent(&s.agent).is_err());
     assert_eq!(s.token.balance(&s.vault.address), 1_000);
 }
@@ -387,6 +392,14 @@ fn set_policy_rejects_invalid_policies() {
     let ok = policy(&s.env, core::slice::from_ref(&s.recipient_ok));
 
     let bad = [
+        Policy {
+            min_amount: 0,
+            ..ok.clone()
+        },
+        Policy {
+            min_amount: 101,
+            ..ok.clone()
+        }, // min_amount > tx_limit
         Policy {
             tx_limit: 0,
             ..ok.clone()
@@ -446,6 +459,7 @@ fn constructor_rejects_owner_and_agent_with_the_same_address() {
             party.clone(),
             Address::generate(&env),
             policy(&env, core::slice::from_ref(&shop)),
+            Address::generate(&env),
         ),
     );
 }
@@ -456,12 +470,14 @@ fn constructor_rejects_invalid_policy() {
     let env = Env::default();
     let a = Address::generate(&env);
     let bad = Policy {
+        min_amount: 1,
         tx_limit: 500,
         daily_limit: 100,
         max_payments_per_day: 5,
         allowlist: Vec::new(&env),
     };
-    env.register(PolicyVault, (a.clone(), a.clone(), a, bad));
+    let r = Address::generate(&env);
+    env.register(PolicyVault, (a.clone(), a.clone(), a, bad, r));
 }
 
 #[test]
@@ -473,6 +489,7 @@ fn status_reports_what_the_scanner_needs() {
     let st = s.vault.get_status();
     assert_eq!(st.owner, s.owner);
     assert_eq!(st.agent, s.agent);
+    assert_eq!(st.recovery, s.recovery);
     assert_eq!(st.token, s.token.address);
     assert!(!st.paused);
     assert_eq!(st.balance, 860);
@@ -514,6 +531,119 @@ fn every_state_change_emits_an_event() {
     s.vault.propose_owner(&proposed);
     s.vault.accept_owner();
     assert_eq!(vault_events(&s), 1);
-    s.vault.withdraw(&proposed, &1);
+    s.vault.withdraw(&1);
     assert_eq!(vault_events(&s), 1);
+}
+
+// ---------------------------------------------------------------------------
+// v2: minimum payment and fixed recovery address
+// ---------------------------------------------------------------------------
+
+#[test]
+fn payment_below_the_minimum_reverts() {
+    let s = setup();
+    s.vault.set_policy(&Policy {
+        min_amount: 5,
+        ..policy(&s.env, core::slice::from_ref(&s.recipient_ok))
+    });
+    assert_eq!(
+        s.vault.try_pay(&s.recipient_ok, &4),
+        Err(fail(VaultError::UnderMinAmount))
+    );
+    s.vault.pay(&s.recipient_ok, &5);
+    assert_eq!(s.token.balance(&s.recipient_ok), 5);
+}
+
+/// The minimum is checked after the allowlist and before the maximum, so a
+/// stranger still sees `NotAllowlisted` and an oversized payment `OverTxLimit`.
+#[test]
+fn minimum_is_checked_between_allowlist_and_maximum() {
+    let s = setup();
+    let stranger = Address::generate(&s.env);
+    s.vault.set_policy(&Policy {
+        min_amount: 5,
+        ..policy(&s.env, core::slice::from_ref(&s.recipient_ok))
+    });
+    assert_eq!(
+        s.vault.try_pay(&stranger, &1),
+        Err(fail(VaultError::NotAllowlisted))
+    );
+    assert_eq!(
+        s.vault.try_pay(&s.recipient_ok, &150),
+        Err(fail(VaultError::OverTxLimit))
+    );
+}
+
+#[test]
+fn withdraw_only_pays_the_recovery_address() {
+    let s = setup();
+    s.vault.withdraw(&300);
+    assert_eq!(s.token.balance(&s.recovery), 300);
+    assert_eq!(s.token.balance(&s.owner), 0);
+    assert_eq!(s.token.balance(&s.agent), 0);
+    assert_eq!(s.token.balance(&s.vault.address), 700);
+}
+
+#[test]
+fn withdraw_rejects_non_positive_amounts() {
+    let s = setup();
+    assert_eq!(
+        s.vault.try_withdraw(&0),
+        Err(fail(VaultError::InvalidAmount))
+    );
+    assert_eq!(
+        s.vault.try_withdraw(&-1),
+        Err(fail(VaultError::InvalidAmount))
+    );
+}
+
+#[test]
+#[should_panic(expected = "Error(Contract, #13)")]
+fn constructor_rejects_agent_as_recovery() {
+    let env = Env::default();
+    let owner = Address::generate(&env);
+    let agent = Address::generate(&env);
+    let shop = Address::generate(&env);
+    env.register(
+        PolicyVault,
+        (
+            owner,
+            agent.clone(),
+            Address::generate(&env),
+            policy(&env, core::slice::from_ref(&shop)),
+            agent,
+        ),
+    );
+}
+
+#[test]
+#[should_panic(expected = "Error(Contract, #13)")]
+fn constructor_rejects_owner_as_recovery() {
+    let env = Env::default();
+    let owner = Address::generate(&env);
+    let agent = Address::generate(&env);
+    let shop = Address::generate(&env);
+    env.register(
+        PolicyVault,
+        (
+            owner.clone(),
+            agent,
+            Address::generate(&env),
+            policy(&env, core::slice::from_ref(&shop)),
+            owner,
+        ),
+    );
+}
+
+#[test]
+fn recovery_address_cannot_become_agent_or_owner() {
+    let s = setup();
+    assert_eq!(
+        s.vault.try_set_agent(&s.recovery),
+        Err(fail(VaultError::InvalidPolicy))
+    );
+    assert_eq!(
+        s.vault.try_propose_owner(&s.recovery),
+        Err(fail(VaultError::InvalidOwner))
+    );
 }

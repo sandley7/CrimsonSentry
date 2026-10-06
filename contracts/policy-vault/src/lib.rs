@@ -7,7 +7,8 @@
 //! (allowlist, per-transaction limit, rolling 24h limit, payment-rate limit).
 //! Any violation panics with a typed error and reverts the whole transaction.
 //! The owner keeps a kill switch (`pause`), can rotate the agent and owner
-//! keys through controlled transitions, and can recover the funds (`withdraw`).
+//! keys through controlled transitions, and can recover the funds with
+//! `withdraw`, which only pays the recovery address fixed at deploy time.
 
 use soroban_sdk::{
     contract, contracterror, contractevent, contractimpl, contracttype, panic_with_error, token,
@@ -32,6 +33,8 @@ pub enum DataKey {
     SpendLog,
     /// New owner awaiting acceptance by its own address.
     PendingOwner,
+    /// Fixed destination of `withdraw`. Set once by the constructor.
+    Recovery,
 }
 
 #[contracterror]
@@ -49,6 +52,8 @@ pub enum VaultError {
     NotInitialized = 9,
     InvalidOwner = 10,
     NoPendingOwner = 11,
+    UnderMinAmount = 12,
+    InvalidRecovery = 13,
 }
 
 /// The rules the agent must respect. Stored as a single entry so a policy
@@ -56,6 +61,9 @@ pub enum VaultError {
 #[contracttype]
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct Policy {
+    /// Min amount of a single payment. Makes burning the daily payment quota
+    /// with dust payments cost something.
+    pub min_amount: i128,
     /// Max amount of a single payment.
     pub tx_limit: i128,
     /// Max total spent in any rolling 24h window (not a calendar day, so the
@@ -82,6 +90,7 @@ pub struct Status {
     pub owner: Address,
     pub agent: Address,
     pub token: Address,
+    pub recovery: Address,
     pub paused: bool,
     pub policy: Policy,
     pub balance: i128,
@@ -167,13 +176,28 @@ impl PolicyVault {
     /// no `initialize()` function (re-initialization is a CRITICAL vuln from
     /// the pre-deploy checklist); the constructor makes it structurally
     /// impossible.
-    pub fn __constructor(env: Env, owner: Address, agent: Address, token: Address, policy: Policy) {
+    ///
+    /// `recovery` is where `withdraw` pays, forever: there is no setter. It must
+    /// be a third address (neither the owner, the agent nor this vault), ideally
+    /// a cold or multisig account.
+    pub fn __constructor(
+        env: Env,
+        owner: Address,
+        agent: Address,
+        token: Address,
+        policy: Policy,
+        recovery: Address,
+    ) {
         validate_policy(&env, &policy, &owner, &agent, None);
+        if recovery == owner || recovery == agent || recovery == env.current_contract_address() {
+            panic_with_error!(&env, VaultError::InvalidRecovery);
+        }
 
         let storage = env.storage().instance();
         storage.set(&DataKey::Owner, &owner);
         storage.set(&DataKey::Agent, &agent);
         storage.set(&DataKey::Token, &token);
+        storage.set(&DataKey::Recovery, &recovery);
         storage.set(&DataKey::Policy, &policy);
         storage.set(&DataKey::Paused, &false);
         bump_instance(&env);
@@ -204,7 +228,10 @@ impl PolicyVault {
             panic_with_error!(&env, VaultError::NotAllowlisted);
         }
 
-        // Rule 2: per-transaction limit.
+        // Rule 2: per-transaction range, minimum then maximum.
+        if monto < policy.min_amount {
+            panic_with_error!(&env, VaultError::UnderMinAmount);
+        }
         if monto > policy.tx_limit {
             panic_with_error!(&env, VaultError::OverTxLimit);
         }
@@ -283,7 +310,9 @@ impl PolicyVault {
         let owner: Address = read(&env, &DataKey::Owner);
         let policy: Policy = read(&env, &DataKey::Policy);
         let pending_owner: Option<Address> = env.storage().instance().get(&DataKey::PendingOwner);
+        let recovery: Address = read(&env, &DataKey::Recovery);
         if new_agent == owner
+            || new_agent == recovery
             || pending_owner.as_ref() == Some(&new_agent)
             || policy.allowlist.contains(&new_agent)
         {
@@ -305,7 +334,12 @@ impl PolicyVault {
         let owner: Address = read(&env, &DataKey::Owner);
         let agent: Address = read(&env, &DataKey::Agent);
         let policy: Policy = read(&env, &DataKey::Policy);
-        if new_owner == owner || new_owner == agent || policy.allowlist.contains(&new_owner) {
+        let recovery: Address = read(&env, &DataKey::Recovery);
+        if new_owner == owner
+            || new_owner == agent
+            || new_owner == recovery
+            || policy.allowlist.contains(&new_owner)
+        {
             panic_with_error!(&env, VaultError::InvalidOwner);
         }
 
@@ -331,7 +365,11 @@ impl PolicyVault {
         let old_owner: Address = read(&env, &DataKey::Owner);
         let agent: Address = read(&env, &DataKey::Agent);
         let policy: Policy = read(&env, &DataKey::Policy);
-        if pending_owner == agent || policy.allowlist.contains(&pending_owner) {
+        let recovery: Address = read(&env, &DataKey::Recovery);
+        if pending_owner == agent
+            || pending_owner == recovery
+            || policy.allowlist.contains(&pending_owner)
+        {
             panic_with_error!(&env, VaultError::InvalidOwner);
         }
 
@@ -364,14 +402,18 @@ impl PolicyVault {
         bump_instance(&env);
     }
 
-    /// Owner-only: recover funds. Works even while paused and ignores the
-    /// agent policy — the owner must always be able to get the money out.
-    pub fn withdraw(env: Env, to: Address, amount: i128) {
+    /// Owner-only: move funds to the recovery address fixed at deploy time.
+    /// Works even while paused and ignores the agent policy. The destination
+    /// cannot be chosen here, so a stolen owner key cannot use `withdraw` to
+    /// send the money to the thief. It does not stop an owner-key thief from
+    /// loosening the policy and rotating the agent: see docs/V2.md.
+    pub fn withdraw(env: Env, amount: i128) {
         require_owner(&env);
         if amount <= 0 {
             panic_with_error!(&env, VaultError::InvalidAmount);
         }
 
+        let to: Address = read(&env, &DataKey::Recovery);
         token_client(&env).transfer(&env.current_contract_address(), &to, &amount);
         Withdrawn { to, amount }.publish(&env);
         bump_instance(&env);
@@ -404,6 +446,7 @@ impl PolicyVault {
             owner: read(&env, &DataKey::Owner),
             agent: read(&env, &DataKey::Agent),
             token: read(&env, &DataKey::Token),
+            recovery: read(&env, &DataKey::Recovery),
             paused: read(&env, &DataKey::Paused),
             balance: token_client(&env).balance(&env.current_contract_address()),
             spent_last_24h: spent,
@@ -487,8 +530,11 @@ fn validate_policy(
     agent: &Address,
     pending_owner: Option<&Address>,
 ) {
-    // Tercio, tu Claude la cagó aquí xd, pero ya la arreglé: evita convertir al agente o al dueño en destino pagable.
-    let valid = policy.tx_limit > 0
+    // Keep the agent and the owner out of the payable destinations, and the
+    // two roles apart.
+    let valid = policy.min_amount > 0
+        && policy.min_amount <= policy.tx_limit
+        && policy.tx_limit > 0
         && policy.daily_limit > 0
         && policy.tx_limit <= policy.daily_limit
         && policy.max_payments_per_day > 0
