@@ -21,7 +21,7 @@
 | Pieza | Qué hace | Dónde |
 |---|---|---|
 | **Policy Vault** | Contrato Soroban que custodia los fondos del agente y aplica la política en cada pago | [`contracts/policy-vault`](contracts/policy-vault) |
-| **Escáner** | CLI que audita al agente y su vault: semáforo de 16 chequeos mapeado al OWASP Agentic Top 10 (2026) | [`tools/scanner`](tools/scanner) |
+| **Escáner** | CLI que audita al agente y su vault: semáforo de 17 chequeos mapeado al OWASP Agentic Top 10 (2026) | [`tools/scanner`](tools/scanner) |
 | **Agente demo** | Reproduce los intentos de pago de un agente (legítimos y maliciosos) contra el vault | [`tools/agent`](tools/agent) |
 
 ---
@@ -139,6 +139,7 @@ Código de salida: `0` verde · `1` amarillo · `2` rojo.
 | C14 | Token custodiado | No es el SAC oficial de XLM | ASI04 |
 | C15 | Vida del contrato (TTL) | Archivado / quedan menos de 7 días | ASI08 |
 | C16 | Fondos del vault | Menos que un pago máximo | — |
+| C17 | Dirección de recuperación y techos (solo v2; en la v1 sale 🟡) | Recuperación igual al dueño o al agente, cuenta inexistente o de una sola clave, o un techo diario que alcanza para vaciar el vault | ASI03 · ASI09 |
 
 Sobre el vault principal, hoy da **🔴 en C1**: la cuenta del agente conserva ~9,999 XLM de Friendbot, 125 veces lo que protege el vault. Es la [limitación 1](#limitaciones-conocidas) vista en vivo. En la demo del agente, devolver ese excedente al dueño pasa C1 a 🟢.
 
@@ -266,8 +267,8 @@ source scripts/env.sh        # Git Bash
 ### Tests
 
 ```bash
-cargo test                   # contrato: 19 tests
-cd tools && npm test         # escáner: 11 tests
+cargo test                   # contrato: 37 tests (v2)
+cd tools && npm test         # escáner: 16 tests
 ```
 
 Los tests del contrato cubren:
@@ -307,5 +308,5 @@ El ataque de pagos paralelos prepara dos pagos de 10 XLM; cada uno por separado 
 - [x] Demo del agente con rechazos on-chain (Día 5)
 - [ ] Arquitectura B: *contract account* con `__check_auth`, compatible con x402/MPP
 - [ ] Relayer con fee-bump para que el agente no necesite saldo propio
-- [ ] v2 del contrato: agente y dueño fuera de la allowlist, monto mínimo, cambio de dueño en dos pasos
+- [ ] v2 del contrato: agente y dueño fuera de la allowlist, monto mínimo, cambio de dueño en dos pasos y dirección de recuperación fija y techos inmutables de la política. **Escrita, probada y desplegada en testnet desde la rama [`v2-contract`](docs/V2.md), con [evidencia propia](evidence/v2/testnet-evidence.md); falta la revisión final de scout y fusionarla**
 - [ ] Keeper de TTL e indexador de eventos con pausa automática ante anomalías

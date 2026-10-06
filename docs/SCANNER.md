@@ -42,6 +42,7 @@ Código de salida: `0` verde, `1` amarillo, `2` rojo, `64` argumentos incompleto
 | C14 | Token del vault | Comprobación contra el SAC de XLM de la red. |
 | C15 | TTL del contrato | Vida restante o instancia archivada. |
 | C16 | Fondos del vault | Saldo menor que un pago máximo permitido. |
+| C17 | Dirección de recuperación y techos | Solo aplica a la v2. 🔴 si la recuperación coincide con el dueño o el agente; 🟡 si su cuenta no existe o tiene una sola clave, o si el techo diario alcanza para vaciar el vault en 24 h. En un vault v1 (sin recuperación fija ni techos) sale 🟡 con la recomendación de migrar a la v2. |
 
 ## Límites de observabilidad
 

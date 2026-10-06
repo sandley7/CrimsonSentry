@@ -1,6 +1,6 @@
 # CrimsonSentry — Arquitectura
 
-Esquema del contrato `policy-vault` (Días 1–2, terminado y probado: 19 tests, `cargo scout-audit` sin hallazgos críticos).
+Esquema del contrato `policy-vault` (Días 1–2, terminado y probado: 19 tests en la v1; la v2 de la rama `v2-contract` tiene 37, `cargo scout-audit` sin hallazgos críticos).
 
 ## Actores y componentes
 
