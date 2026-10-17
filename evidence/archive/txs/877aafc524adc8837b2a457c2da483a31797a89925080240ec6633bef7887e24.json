@@ -1,0 +1,13 @@
+{
+  "hash": "877aafc524adc8837b2a457c2da483a31797a89925080240ec6633bef7887e24",
+  "ledger": 5058942,
+  "created_at": "2026-10-06T20:24:57Z",
+  "successful": true,
+  "source_account": "GAYE3NNWPE3ORQFXZKQ65OHC7AECMGAUC7KENCHHCUC6TXKFKY7XA67L",
+  "fee_charged": "100",
+  "operation_count": 1,
+  "memo_type": "none",
+  "envelope_xdr": "AAAAAgAAAAAwTbW2eTbowLfKoe644vgIJhgUF9RGiOcVBendRVY/cAAAAGQATTE2AAAAAwAAAAAAAAAAAAAAAQAAAAAAAAABAAAAAHtKMsAongngCK2upPIJlQkiFRPykQH5M3Tu9/8WtAGLAAAAAAAAABdGrSSAAAAAAAAAAAFFVj9wAAAAQKLIfdUnfv3egikkDdfZvUY/vGJj2i76+VcGsDCTWWvdXgqkO3eLFixUtdHWqYuocB9K67AlyPaZAZigFyn50wA=",
+  "result_xdr": "AAAAAAAAAGQAAAAAAAAAAQAAAAAAAAABAAAAAAAAAAA=",
+  "result_meta_xdr": null
+}

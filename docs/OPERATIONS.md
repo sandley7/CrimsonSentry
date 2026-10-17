@@ -73,6 +73,10 @@ bash scripts/demo-corta.sh live
 
 Con `EVIDENCE_DIR` la demo guarda su registro en otra carpeta, con `OPEN_FIRST_REJECTION=0` no abre el navegador solo y `EXPECTED_WASM_FILE` cambia el hash que el escáner compara. Los logs auxiliares y los `.env` locales están ignorados por Git; los `evidence/*.env` versionados solo contienen direcciones públicas. La evidencia del vault v1 del hackathon está en `evidence/v1/`. Los informes Markdown de evidencia se pueden revisar y compartir, verificando primero que no contengan información privada.
 
+## Archivo de la evidencia
+
+Testnet se reinicia 2 a 4 veces al año, con aviso previo, y entonces se borran contratos, cuentas y transacciones. `python scripts/archive-evidence.py` lee los enlaces de Stellar Expert de los documentos, descarga cada transacción de Horizon y la guarda en `evidence/archive/txs/`, con un índice en `evidence/archive/INDEX.md`. Solo guarda datos públicos. Conviene ejecutarlo después de cada despliegue o demo nuevos y subir el resultado.
+
 ## Auditoría estática
 
 En Linux, WSL o macOS instala Scout y ejecuta:

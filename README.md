@@ -49,6 +49,8 @@ Política: 1 a 10 XLM por pago, 25 XLM por 24 h móviles, máx. 5 pagos en 24 h 
 
 El pago B pasó la simulación por sí solo, porque se construyó cuando solo había 10 XLM gastados. On-chain, el vault vio el acumulado real y revirtió: **las validaciones fuera de la cadena se pueden burlar; la regla on-chain no.** Detalle: [`evidence/testnet-evidence.md`](evidence/testnet-evidence.md) (escenarios del script) y [`evidence/testnet-v2-features.md`](evidence/testnet-v2-features.md) (recuperación, techos y mínimo).
 
+**Copia de seguridad:** testnet se reinicia varias veces al año y entonces los enlaces de Stellar Expert dejan de funcionar. Cada transacción citada en esta página está archivada completa (sobre, resultado y metadata) en [`evidence/archive/`](evidence/archive/INDEX.md); `python scripts/archive-evidence.py` la regenera.
+
 ### Demo del agente sobre la v2: cada regla, rechazada on-chain
 
 Vault de demo [`CCIUPWTI…NIA7T`](https://stellar.expert/explorer/testnet/contract/CCIUPWTI62VHOUZGZ5QOFA2L7TB6LQLOYDKEWMFBP4RR52GVKO3NIA7T), con la misma política. El agente actúa como un **cliente comprometido**: envía los pagos aunque la simulación los rechace, así que el rechazo lo impone el contrato en la cadena.
@@ -68,9 +70,11 @@ La v1 sigue desplegada y es la que muestran los videos. **Ya no es la versión o
 
 | Escenario | Resultado on-chain | Transacción |
 |---|---|---|
+| Despliegue del contrato | ✅ | [`83a8576b…`](https://stellar.expert/explorer/testnet/tx/83a8576b01aeae5a858a61fe83452275f87aaa7c2daa4e29f9bcf7b242634954) |
 | Pago válido de 10 XLM | ✅ SUCCESS | [`353b05e3…`](https://stellar.expert/explorer/testnet/tx/353b05e366f9e4491b87747bfea9e5e624a33307c413470df5926d6cdc990671) |
 | Ataque de pagos paralelos, pago A | ✅ SUCCESS | [`c1fa5ea6…`](https://stellar.expert/explorer/testnet/tx/c1fa5ea6a2d240a82fe25a39b98a1f8355921b76564b1d55696f4260b467971d) |
 | Ataque de pagos paralelos, pago B (30 > 25) | ⛔ **FAILED**: `#3` | [`89f54fce…`](https://stellar.expert/explorer/testnet/tx/89f54fceaeb9907fd1c8bbe63663a4b4cfd3fc9b0bbe94ed5d6481832add745b) |
+| Pausa y reanudación (kill switch) | ✅ | pausa [`9cda2c8c…`](https://stellar.expert/explorer/testnet/tx/9cda2c8ca469daa09215f5b1577ac2f38b52574e91341f8bccfb1a26dd60f73e) · reanudación [`f480e480…`](https://stellar.expert/explorer/testnet/tx/f480e480afe4d6da3fb47361aecf2702236b5bb3061600e916a82a1eaf1ced4d) |
 | Demo del agente: 50 XLM fuera de la allowlist | ⛔ **FAILED**: `#1` | [`969e551b…`](https://stellar.expert/explorer/testnet/tx/969e551b48072ea5d8ee61146c8fdb0f48427e3b28278e6ca4dedf0df3fb12de) |
 | Demo del agente: 6.º pago en 24 h | ⛔ **FAILED**: `#8` | [`c8adfc3b…`](https://stellar.expert/explorer/testnet/tx/c8adfc3b11294721b363c20a6a7fa8d07377fbdcf1ab1ac803e44c8e2022ca4b) |
 | Demo del agente: pago con el vault en pausa | ⛔ **FAILED**: `#7` | [`f66b31e8…`](https://stellar.expert/explorer/testnet/tx/f66b31e830105fc5657e415b108e53fb6b0592260e6bfdd8b472cef7d6119567) |
