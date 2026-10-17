@@ -1,15 +1,16 @@
 # CrimsonSentry — Arquitectura
 
-Esquema del contrato `policy-vault` (Días 1–2, terminado y probado: 19 tests en la v1; la v2 de la rama `v2-contract` tiene 37, `cargo scout-audit` sin hallazgos críticos).
+Esquema del contrato `policy-vault` **v2**, la versión oficial: 37 tests y `cargo scout-audit` sin hallazgos críticos. La v1 del hackathon tenía 19 tests; los cambios están en [V2.md](V2.md).
 
 ## Actores y componentes
 
 ```mermaid
 flowchart LR
-    Owner([Dueño humano]) -->|set_policy · pause/unpause · set_agent · withdraw| Vault[(Policy Vault<br/>contrato Soroban)]
+    Owner([Dueño humano]) -->|set_policy dentro de los techos · pause/unpause · set_agent · propose_owner · withdraw| Vault[(Policy Vault<br/>contrato Soroban)]
     Agent([Agente IA]) -->|pay destino, monto| Vault
     Vault -->|transfer, si pasa la política| Token[[Token XLM · SAC]]
     Token -->|XLM| Dest[Comercio permitido<br/>allowlist]
+    Vault -->|withdraw: solo a la dirección fija| Recovery[(Dirección de recuperación<br/>fijada al desplegar)]
     Vault -.->|emite evento| Events[[Eventos on-chain]]
     Scanner([Escáner CLI · tools/scanner]) -->|get_status · Stellar RPC| Vault
     Agent ---|misma clave| Own[(Saldo propio del agente)]
@@ -29,7 +30,9 @@ flowchart TD
     Paused -- sí --> E7[Error #7 Paused]
     Paused -- no --> Allow{¿Destino en allowlist?}
     Allow -- no --> E1[Error #1 NotAllowlisted]
-    Allow -- sí --> TxLimit{¿Monto <= límite por pago?}
+    Allow -- sí --> Min{¿Monto >= mínimo?}
+    Min -- no --> E12[Error #12 UnderMinAmount]
+    Min -- sí --> TxLimit{¿Monto <= límite por pago?}
     TxLimit -- no --> E2[Error #2 OverTxLimit]
     TxLimit -- sí --> Count{¿Menos de N pagos en 24h?}
     Count -- no --> E8[Error #8 TooManyPayments]
@@ -41,6 +44,21 @@ flowchart TD
 ```
 
 Cualquier error hace `panic_with_error!` y **revierte toda la transacción**: no se registra el gasto ni se mueve dinero.
+
+## Lo que controla el dueño
+
+```mermaid
+flowchart TD
+    O([Dueño llama set_policy]) --> Auth{¿Firma del dueño?}
+    Auth -- no --> EA[Tx rechazada: falta autorización]
+    Auth -- sí --> Valid{¿Política coherente?<br/>mínimo, límites, allowlist,<br/>dueño y agente fuera de ella}
+    Valid -- no --> E6[Error #6 InvalidPolicy]
+    Valid -- sí --> Ceil{¿Límite por pago y diario<br/>dentro de los techos?}
+    Ceil -- no --> E14[Error #14 PolicyOverCeiling]
+    Ceil -- sí --> OK([Política reemplazada → evento policy_updated])
+```
+
+Los techos y la dirección de recuperación se fijan en el constructor y no tienen ninguna función que los cambie. `withdraw(amount)` solo paga a la dirección de recuperación. El cambio de dueño es en dos pasos: `propose_owner`, y luego `accept_owner` con la firma de la dirección nueva.
 
 ## Opción A (en construcción) vs Opción B (objetivo)
 

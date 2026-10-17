@@ -1,6 +1,6 @@
 # Evidencia en Stellar testnet: contrato v2
 
-Registrada el 06/10/2026 desde la rama `v2-contract`. Todo son cuentas y fondos de prueba. **Esta evidencia es de la v2; la del README principal es de la v1.**
+Registrada el 06/10/2026 sobre el contrato v2, que es la versión oficial. Todo son cuentas y fondos de prueba. La evidencia de la v1 (la del hackathon) está en [`v1/`](v1/testnet-evidence.md).
 
 ## Datos del despliegue
 
@@ -51,5 +51,5 @@ El comercio permitido es una wallet de pruebas de Freighter, que pasó de 10 000
 ## Lo que esta evidencia no prueba
 
 - Que la v2 esté auditada: es un prototipo de testnet.
-- Que un dueño comprometido no pueda perder fondos: los techos acotan lo que sale por el camino de pagos del agente en cada ventana de 24 h, pero no lo eliminan. Ver [`docs/V2.md`](../../docs/V2.md).
+- Que un dueño comprometido no pueda perder fondos: los techos acotan lo que sale por el camino de pagos del agente en cada ventana de 24 h, pero no lo eliminan. Ver [`docs/V2.md`](../docs/V2.md).
 - Que proteja el saldo propio del agente ni los pagos x402/MPP: la arquitectura sigue siendo la A.
