@@ -7,7 +7,7 @@ on:
 
 jobs:
   documentation:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v7
       - uses: actions/setup-python@v6
@@ -16,7 +16,7 @@ jobs:
       - run: python scripts/check-doc-links.py
 
   test:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v7
       - uses: dtolnay/rust-toolchain@stable
@@ -35,7 +35,7 @@ jobs:
 
   # Off-chain tools: scanner checks run against fixtures (no network needed).
   tools:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     defaults:
       run:
         working-directory: tools
@@ -54,7 +54,7 @@ jobs:
   # No rust-cache here: a restored cache leaves scout's detector build out of
   # sync with the nightly toolchain it installs, and the detectors fail to build.
   scout-audit:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v7
       - uses: dtolnay/rust-toolchain@stable
