@@ -140,7 +140,7 @@ Código de salida: `0` verde · `1` amarillo · `2` rojo.
 | C15 | Vida del contrato (TTL) | Archivado / quedan menos de 7 días | ASI08 |
 | C16 | Fondos del vault | Menos que un pago máximo | — |
 
-Sobre el vault principal, hoy da **🔴 en C1**: la cuenta del agente conserva ~9,999 XLM de Friendbot, 125 veces lo que protege el vault. Es la [limitación 1](#limitaciones-conocidas) vista en vivo. En la demo del agente, devolver ese excedente al dueño pasa C1 a 🟢.
+Sobre el vault principal, C1 dio **🔴** al principio: la cuenta del agente conservaba ~9,999 XLM de Friendbot, 125 veces lo que protege el vault. Era la [limitación 1](#limitaciones-conocidas) vista en vivo, y uno de los jurados la señaló. El 06/10/2026 el agente devolvió 9 997 XLM al dueño ([`7769ba70…`](https://stellar.expert/explorer/testnet/tx/7769ba70fda1c792585158819f5b6277eb0ff2adfe5b42a167920759121474a6)) y C1 pasó a **🟢**: hoy puede mover ~1,96 XLM, solo para fees. No queda ningún 🔴 en ese vault; C12 sigue en 🟡 porque una sola clave controla al dueño. En la demo del agente ocurre lo mismo con un agente nuevo.
 
 Fuera del alcance on-chain: ASI05 (ejecución de código en el host del agente) y ASI06 (el gasto real vive en el `SpendLog`, no en la memoria del agente).
 
