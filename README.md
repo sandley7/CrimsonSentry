@@ -250,7 +250,7 @@ El historial de commits del repo refleja este trabajo.
 ### Requisitos
 
 - Rust ≥ 1.91 con el target `wasm32v1-none`
-- `stellar-cli` ≥ 28 (testnet corre el protocolo 28, `soroban-sdk 28.0.0`)
+- `stellar-cli` ≥ 28 y `soroban-sdk 28.0.0`. Testnet corre hoy el protocolo 29; un contrato compilado con el SDK 28 se despliega y funciona (comprobado el 17/10/2026 con la v2). Compilado dos veces desde cero, el WASM de la v2 da el mismo hash
 - Node.js ≥ 22.12 para el escáner y el agente (`cd tools && npm ci`)
 
 En la PC de desarrollo (Windows) el toolchain está en `D:\Rust`. Carga el entorno con:
