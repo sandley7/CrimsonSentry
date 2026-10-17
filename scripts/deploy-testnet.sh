@@ -14,6 +14,8 @@
 #   AGENT_ID     identity of the agent            (default cs-agent)
 #   VAULT_ALIAS  CLI alias for the new vault      (default crimson-vault)
 #   OUT          file with the deployment ids     (default evidence/deployment.env)
+#   RECOVERY_ADDRESS  public address that withdraw pays (default: identity cs-recovery)
+#   CEILING_TX_XLM / CEILING_DAILY_XLM  immutable policy ceilings (default 20 / 50 XLM)
 set -euo pipefail
 cd "$(dirname "$0")/.."
 source scripts/env.sh
@@ -24,13 +26,18 @@ AGENT_ID=${AGENT_ID:-cs-agent}
 VAULT_ALIAS=${VAULT_ALIAS:-crimson-vault}
 OUT=${OUT:-evidence/deployment.env}
 
-# Policy: max 10 XLM per payment, 25 XLM per rolling 24h, 5 payments / 24h.
+# Policy: 1-10 XLM per payment, 25 XLM per rolling 24h, 5 payments / 24h.
+MIN_AMOUNT=$((1 * STROOPS))
 TX_LIMIT=$((10 * STROOPS))
 DAILY_LIMIT=$((25 * STROOPS))
 MAX_PAYMENTS=5
+CEILING_TX=$((${CEILING_TX_XLM:-20} * STROOPS))
+CEILING_DAILY=$((${CEILING_DAILY_XLM:-50} * STROOPS))
 VAULT_FUNDING=$((100 * STROOPS))
 
-for id in cs-owner "$AGENT_ID" cs-shop; do
+IDS=(cs-owner "$AGENT_ID" cs-shop)
+[ -n "${RECOVERY_ADDRESS:-}" ] || IDS+=(cs-recovery)
+for id in "${IDS[@]}"; do
   if ! stellar keys address "$id" >/dev/null 2>&1; then
     echo "==> Creating and funding identity $id"
     stellar keys generate "$id" --network "$NET" --fund
@@ -40,21 +47,24 @@ done
 OWNER=$(stellar keys address cs-owner)
 AGENT=$(stellar keys address "$AGENT_ID")
 SHOP=$(stellar keys address cs-shop)
+RECOVERY=${RECOVERY_ADDRESS:-$(stellar keys address cs-recovery)}
 XLM=$(stellar contract id asset --asset native --network "$NET")
 
 echo "==> Building"
 stellar contract build
 
 echo "==> Deploying Policy Vault"
-POLICY=$(printf '{"tx_limit":"%s","daily_limit":"%s","max_payments_per_day":%s,"allowlist":["%s"]}' \
-  "$TX_LIMIT" "$DAILY_LIMIT" "$MAX_PAYMENTS" "$SHOP")
+POLICY=$(printf '{"min_amount":"%s","tx_limit":"%s","daily_limit":"%s","max_payments_per_day":%s,"allowlist":["%s"]}' \
+  "$MIN_AMOUNT" "$TX_LIMIT" "$DAILY_LIMIT" "$MAX_PAYMENTS" "$SHOP")
+CEILINGS=$(printf '{"max_tx_limit":"%s","max_daily_limit":"%s"}' "$CEILING_TX" "$CEILING_DAILY")
 VAULT=$(stellar contract deploy \
   --wasm target/wasm32v1-none/release/policy_vault.wasm \
   --source-account cs-owner \
   --network "$NET" \
   --alias "$VAULT_ALIAS" \
   -- \
-  --owner "$OWNER" --agent "$AGENT" --token "$XLM" --policy "$POLICY")
+  --owner "$OWNER" --agent "$AGENT" --token "$XLM" --policy "$POLICY" --recovery "$RECOVERY" \
+  --ceilings "$CEILINGS")
 
 echo "==> Funding vault with $((VAULT_FUNDING / STROOPS)) XLM"
 stellar contract invoke --id "$XLM" --source-account cs-owner --network "$NET" \
@@ -66,6 +76,9 @@ XLM=$XLM
 OWNER=$OWNER
 AGENT=$AGENT
 SHOP=$SHOP
+RECOVERY=$RECOVERY
+CEILING_TX=$CEILING_TX
+CEILING_DAILY=$CEILING_DAILY
 EOF
 
 echo

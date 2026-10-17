@@ -232,11 +232,54 @@ function c16VaultFunds(d) {
   return result(...t, 'green', `Saldo ${xlm(balance)}.`);
 }
 
+function c17RecoveryAndCeilings(d) {
+  const t = ['C17', 'Dirección de recuperación y techos de la política', ['ASI03', 'ASI09']];
+  const { recovery, ceilings, owner, agent, balance } = d.status;
+  if (!recovery || !ceilings) {
+    return result(...t, 'yellow',
+      'Contrato v1: el dueño puede retirar a cualquier dirección y aflojar la política sin un techo.',
+      'Desplegar la v2 (dirección de recuperación fija y techos inmutables) y migrar los fondos.');
+  }
+  const RANK = { green: 0, yellow: 1, red: 2 };
+  const issues = [];
+  const flag = (color, text, fix) => issues.push({ color, text, fix });
+
+  if (recovery === owner || recovery === agent) {
+    flag('red', 'La dirección de recuperación coincide con el dueño o el agente: fijarla no protege nada.',
+      'Desplegar un vault nuevo con una recuperación distinta.');
+  } else if (recovery.startsWith('G')) {
+    if (d.recoveryAccount === null) {
+      flag('yellow', 'La cuenta de recuperación no existe en la red: un retiro hacia ella probablemente fallaría hasta crearla y fondearla.',
+        'Crear y fondear la cuenta de recuperación.');
+    } else if (d.recoveryAccount) {
+      const signers = activeSigners(d.recoveryAccount);
+      const med = d.recoveryAccount.thresholds.med_threshold;
+      if (!(signers.length >= 2 && med >= 2)) {
+        flag('yellow', 'Una sola clave controla la cuenta de recuperación.',
+          'Hacerla multifirma o guardarla en frío (hardware wallet).');
+      }
+    }
+  }
+  if (balance > 0n && ceilings.max_daily_limit >= balance) {
+    flag('yellow',
+      `El techo diario (${xlm(ceilings.max_daily_limit)}) alcanza para vaciar el vault (${xlm(balance)}) en 24 h, aunque el dueño quede comprometido.`,
+      'Desplegar un vault con un techo diario menor que el saldo, o fondearlo por encima del techo.');
+  }
+
+  const worst = issues.reduce((w, i) => (RANK[i.color] > RANK[w] ? i.color : w), 'green');
+  if (worst === 'green') {
+    const note = recovery.startsWith('C') ? ' La recuperación es una cuenta-contrato: verifica su __check_auth.' : '';
+    return result(...t, 'green',
+      `Recuperación fija ${recovery.slice(0, 6)}…${recovery.slice(-4)} · techos de ${xlm(ceilings.max_tx_limit)} por pago y ${xlm(ceilings.max_daily_limit)} por 24 h.${note}`);
+  }
+  return result(...t, worst, issues.map((i) => i.text).join(' '), issues.map((i) => i.fix).join(' '));
+}
+
 export const CHECKS = [
   c1AgentOwnFunds, c2AgentOtherAssets, c3AgentSigners, c4RoleSeparation,
   c5PartiesInAllowlist, c6AllowlistHygiene, c7LimitProportions, c8WindowUsage,
   c9FailedAttempts, c10ObservedBypass, c11KillSwitch, c12OwnerKey,
-  c13CodeIntegrity, c14TokenIntegrity, c15Liveness, c16VaultFunds,
+  c13CodeIntegrity, c14TokenIntegrity, c15Liveness, c16VaultFunds, c17RecoveryAndCeilings,
 ];
 
 export function runChecks(data) {

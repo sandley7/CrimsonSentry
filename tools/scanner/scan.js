@@ -10,7 +10,7 @@
 import { parseArgs } from 'node:util';
 import { readFileSync, existsSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
-import { dirname, join } from 'node:path';
+import { dirname, join, resolve } from 'node:path';
 import {
   connect, getVaultStatus, getContractInfo, getAccount, getActivity,
   getBaseReserve, nativeSacId, xlm, STROOPS_PER_XLM,
@@ -19,7 +19,9 @@ import { runChecks, verdict } from './checks.js';
 import { ASI, NOT_OBSERVABLE } from './owasp.js';
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..', '..');
-const DEFAULT_WASM_FILE = join(ROOT, 'evidence', 'wasm-sha256.txt');
+const DEFAULT_WASM_FILE = process.env.EXPECTED_WASM_FILE
+  ? resolve(ROOT, process.env.EXPECTED_WASM_FILE)
+  : join(ROOT, 'evidence', 'wasm-sha256.txt');
 const LIGHT = { green: '🟢', yellow: '🟡', red: '🔴' };
 const EXIT = { green: 0, yellow: 1, red: 2 };
 
@@ -71,12 +73,13 @@ async function collect(conn) {
   await Promise.all(status.policy.allowlist.filter((a) => a.startsWith('G')).map(async (a) => {
     allowlistAccounts[a] = (await getAccount(conn, a)) !== null;
   }));
+  const recoveryAccount = status.recovery?.startsWith('G') ? await getAccount(conn, status.recovery) : undefined;
   const expectedWasm = args['expected-wasm']
     ?? (existsSync(DEFAULT_WASM_FILE) ? readFileSync(DEFAULT_WASM_FILE, 'utf8').trim() : null);
   const feeBuffer = BigInt(Math.round(feeBufferXlm * Number(STROOPS_PER_XLM)));
   return {
     status, contractInfo, baseReserve, agentAccount, ownerAccount, agentActivity,
-    allowlistAccounts, expectedWasm, feeBuffer, nativeSac: nativeSacId(conn), now: Date.now(),
+    allowlistAccounts, recoveryAccount, expectedWasm, feeBuffer, nativeSac: nativeSacId(conn), now: Date.now(),
   };
 }
 

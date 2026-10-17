@@ -15,12 +15,12 @@
 set -euo pipefail
 cd "$(dirname "$0")/.."
 source scripts/env.sh
-source evidence/deployment.env
+source "${DEPLOYMENT:-evidence/deployment.env}"
 
 NET=testnet
 STROOPS=10000000
 EXPERT=https://stellar.expert/explorer/testnet
-OUT=evidence/testnet-evidence.md
+OUT=${OUT:-evidence/testnet-evidence.md}
 
 {
   echo "# CrimsonSentry — evidencia en testnet"
@@ -28,7 +28,7 @@ OUT=evidence/testnet-evidence.md
   echo "- Fecha: $(date -u '+%Y-%m-%d %H:%M UTC')"
   echo "- Vault: [\`$VAULT\`]($EXPERT/contract/$VAULT)"
   echo "- Agente: \`$AGENT\` · Dueño: \`$OWNER\` · Comercio permitido: \`$SHOP\`"
-  echo "- Política: 10 XLM por pago, 25 XLM por 24h móviles, máx. 5 pagos por 24h"
+  echo "- Política: 1 a 10 XLM por pago, 25 XLM por 24h móviles, máx. 5 pagos por 24h"
   echo
   echo "| # | Escenario | Resultado | Transacción |"
   echo "|---|---|---|---|"

@@ -7,6 +7,7 @@ const OWNER = 'GBJ6ET45Z564CPAGJF6FHATLNW335YNYFDI3MWZK45CP5HH44G3I73AS';
 const AGENT = 'GCJYDHTA7IJ3MTFTKFOWIJL7JT72ITLOEWFXNLJIRWZR4YDMJLM3DFLV';
 const SHOP = 'GBJ3X4V6XOHZFMQNT7UR4DYBYSRWVQNVSPC6K7AYXILPREZDF5LGFPSK';
 const SAC = 'CDLZFC3SYJYDZT7K67VZ75HPJVIEUVNIXF47ZG2FB2RMQQVU2HHGCYSC';
+const RECOVERY = 'GATNLW53CFJ6KBCJXROP5RWVRJO77Y4563KQ7QPTI5OYIGS6P7SGS5I4';
 const WASM = '8f063bdcefa17824502ed78aa6cecca68727fad558c8fb26de2c69d8257c6bef';
 const NOW = Date.parse('2026-09-23T08:00:00Z');
 
@@ -61,6 +62,13 @@ function hardened() {
   d.status.spent_last_24h = 0n;
   d.status.payments_last_24h = 0;
   d.agentActivity.transactions = [];
+  // v2: fixed recovery address (multisig) and immutable ceilings below the vault balance.
+  d.status.recovery = RECOVERY;
+  d.status.ceilings = { max_tx_limit: 200000000n, max_daily_limit: 500000000n };
+  d.recoveryAccount = account(RECOVERY, '100.0000000', {
+    signers: [{ key: RECOVERY, weight: 1 }, { key: 'GCOLD', weight: 1 }],
+    thresholds: { low_threshold: 2, med_threshold: 2, high_threshold: 2 },
+  });
   return d;
 }
 
@@ -145,4 +153,34 @@ test('paused vault and a broke owner are flagged', () => {
   assert.equal(byId(runChecks(d)).C11, 'yellow');
   d.ownerAccount = account(OWNER, '1.2000000');
   assert.equal(byId(runChecks(d)).C11, 'red');
+});
+
+test('a v1 vault (no recovery address, no ceilings) is yellow in C17', () => {
+  assert.equal(byId(runChecks(liveDeployment())).C17, 'yellow');
+});
+
+test('v2 with a multisig recovery and ceilings below the balance: C17 green', () => {
+  assert.equal(byId(runChecks(hardened())).C17, 'green');
+});
+
+test('a recovery address equal to the owner or the agent is red', () => {
+  const d = hardened();
+  d.status.recovery = OWNER;
+  assert.equal(byId(runChecks(d)).C17, 'red');
+  d.status.recovery = AGENT;
+  assert.equal(byId(runChecks(d)).C17, 'red');
+});
+
+test('a recovery account that does not exist, or has a single key, is yellow', () => {
+  const d = hardened();
+  d.recoveryAccount = null;
+  assert.equal(byId(runChecks(d)).C17, 'yellow');
+  d.recoveryAccount = account(RECOVERY, '100.0000000');
+  assert.equal(byId(runChecks(d)).C17, 'yellow');
+});
+
+test('a daily ceiling that can empty the vault in 24h is yellow', () => {
+  const d = hardened();
+  d.status.ceilings = { max_tx_limit: 200000000n, max_daily_limit: 800000000n };
+  assert.equal(byId(runChecks(d)).C17, 'yellow');
 });

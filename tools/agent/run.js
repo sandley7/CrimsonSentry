@@ -18,7 +18,9 @@ import { connect, getVaultStatus, xlm } from '../lib/stellar.js';
 import { VaultWallet, identityAddress } from './wallet.js';
 
 const HERE = dirname(fileURLToPath(import.meta.url));
-const ERRORS = { 1: 'NotAllowlisted', 2: 'OverTxLimit', 3: 'OverDailyLimit', 4: 'ArithmeticOverflow', 5: 'InvalidAmount', 6: 'InvalidPolicy', 7: 'Paused', 8: 'TooManyPayments', 9: 'NotInitialized' };
+const ERRORS = { 1: 'NotAllowlisted', 2: 'OverTxLimit', 3: 'OverDailyLimit', 4: 'ArithmeticOverflow', 5: 'InvalidAmount', 6: 'InvalidPolicy', 7: 'Paused', 8: 'TooManyPayments', 9: 'NotInitialized',
+  // v2 (branch v2-contract)
+  10: 'InvalidOwner', 11: 'NoPendingOwner', 12: 'UnderMinAmount', 13: 'InvalidRecovery', 14: 'PolicyOverCeiling' };
 
 const { values: args } = parseArgs({
   options: {
