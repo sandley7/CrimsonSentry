@@ -69,7 +69,7 @@ Solo si José lo decide:
 
 | Pendiente | Notas |
 |---|---|
-| Arquitectura B y x402 | Hay un prototipo probado en testnet ([`docs/ARQUITECTURA-B.md`](ARQUITECTURA-B.md)). El pago x402 desde la cuenta-contrato ya se verificó y liquidó con el código oficial del facilitador en local; falta el facilitador alojado, un flujo HTTP completo, USDC y bajar el costo en comisiones. Lo piden 4 de los 7 jurados |
+| Arquitectura B y x402 | Hay un prototipo probado en testnet ([`docs/ARQUITECTURA-B.md`](ARQUITECTURA-B.md)). El pago x402 desde la cuenta-contrato ya se verificó y liquidó con el código oficial del facilitador y con el facilitador alojado de testnet; falta un flujo HTTP completo, USDC y bajar el costo en comisiones. Lo piden 4 de los 7 jurados |
 | Demo web pública | Pedida por un jurado. Requiere una cuenta de hosting (por ejemplo, Vercel) |
 | Validación con clientes | Plan en [`docs/VALIDACION.md`](VALIDACION.md). Lo ejecutan personas; nada se envía de forma automática |
 | Video demo y pitch nuevos | Santiago los grabará de nuevo, con la v2 |
