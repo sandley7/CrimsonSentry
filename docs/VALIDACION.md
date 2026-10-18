@@ -64,7 +64,7 @@ El jurado propuso una **tarifa mensual por agente protegido**. No hay precio, po
 >
 > Les ofrecemos una **revisión gratuita de 30 minutos**: corremos el escáner con direcciones públicas, sin que nos pasen ninguna clave, y revisamos juntos qué pasaría si se les comprometiera la clave del agente. A cambio, nos ayuda mucho saber cómo lo resuelven hoy.
 >
-> Demo en video: https://www.youtube.com/watch?v=lgQYx48JnV0 · Código: https://github.com/sandley7/CrimsonSentry
+> Demo en vivo, sin claves: https://sandley7.github.io/CrimsonSentry/ · Demo en video: https://www.youtube.com/watch?v=lgQYx48JnV0 · Código: https://github.com/sandley7/CrimsonSentry
 >
 > ¿Les sirve conversar esta semana?
 >

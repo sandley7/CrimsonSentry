@@ -5,7 +5,13 @@
 // data comes from Horizon.
 
 import { contract, rpc, xdr, Asset, Networks } from '@stellar/stellar-sdk';
-import { createHash } from 'node:crypto';
+
+// This module also runs in the browser (the public demo reuses it), so it only
+// uses APIs that Node and browsers share: fetch and WebCrypto.
+async function sha256Hex(bytes) {
+  const digest = await globalThis.crypto.subtle.digest('SHA-256', bytes);
+  return [...new Uint8Array(digest)].map((b) => b.toString(16).padStart(2, '0')).join('');
+}
 
 export const NETWORKS = {
   testnet: {
@@ -73,7 +79,7 @@ export async function getContractInfo(conn, vaultId) {
     liveUntil = null; // archived or missing
   }
   return {
-    wasmSha256: createHash('sha256').update(wasm).digest('hex'),
+    wasmSha256: await sha256Hex(wasm),
     wasmSize: wasm.length,
     liveUntil,
     latestLedger: latest.sequence,

@@ -76,3 +76,25 @@ jobs:
           name: scout-report
           path: docs/scout-report.md
           if-no-files-found: ignore
+
+  web:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v6
+        with:
+          python-version: '3.x'
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 22
+      - name: Build the demo site
+        run: python scripts/build-web.py
+      - name: web/data/evidence.json matches the evidence tables
+        run: git diff --exit-code -- web/data/evidence.json
+      - name: Syntax check the page script
+        run: cp web/app.js "$RUNNER_TEMP/app.mjs" && node --check "$RUNNER_TEMP/app.mjs"
+      - name: The site has everything the page loads
+        run: |
+          for f in index.html app.js style.css vault.json logo.jpg tools/lib/stellar.js tools/scanner/checks.js tools/scanner/owasp.js evidence/wasm-sha256.txt data/evidence.json; do
+            test -s "_site/$f" || { echo "missing $f"; exit 1; }
+          done

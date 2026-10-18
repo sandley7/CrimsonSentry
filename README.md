@@ -14,6 +14,8 @@
 
 > **Origen:** CrimsonSentry nació en el hackathon Stellar Odyssey Perú 2026 como proyecto de los tres autores, en [JoseEscajadillo/CrimsonSentry](https://github.com/JoseEscajadillo/CrimsonSentry). Este repositorio continúa ese trabajo con el historial de commits intacto, de modo que cada autor conserva su autoría. La **v2 del contrato**, que es la versión oficial de este repositorio, integra los cambios de Cesar al contrato (roles separados y cambio de dueño en dos pasos) con su autoría. La rama `harden-policy-and-docs` conserva su propuesta original completa.
 
+🌐 **Demo en vivo (sin claves):** https://sandley7.github.io/CrimsonSentry/: lee el vault real de testnet, simula pagos fuera de las reglas contra el contrato y ejecuta el escáner en el navegador.
+
 🎬 **Video demo:** https://www.youtube.com/watch?v=lgQYx48JnV0 · 🎤 **Video pitch:** https://www.youtube.com/watch?v=Lhr5abKy-eI (ambos muestran la **v1**, la que se presentó en el hackathon)
 
 📐 Esquema completo, con diagramas de flujo: [`docs/ARQUITECTURA.md`](docs/ARQUITECTURA.md) · Seguridad: [`docs/SECURITY.md`](docs/SECURITY.md) · Operación: [`docs/OPERATIONS.md`](docs/OPERATIONS.md) · Escáner: [`docs/SCANNER.md`](docs/SCANNER.md) · Qué cambia en la v2: [`docs/V2.md`](docs/V2.md) · Para quién es y frente a qué alternativas: [`docs/POSICIONAMIENTO.md`](docs/POSICIONAMIENTO.md) · Plan de validación: [`docs/VALIDACION.md`](docs/VALIDACION.md) · Guía para colaboradores: [`docs/PARA-COLABORADORES.md`](docs/PARA-COLABORADORES.md)
@@ -23,6 +25,7 @@
 | **Policy Vault (v2)** | Contrato Soroban que custodia los fondos del agente y aplica la política en cada pago | [`contracts/policy-vault`](contracts/policy-vault) |
 | **Escáner** | CLI que audita al agente y su vault: semáforo de 17 chequeos mapeado al OWASP Agentic Top 10 (2026) | [`tools/scanner`](tools/scanner) |
 | **Agente demo** | Reproduce los intentos de pago de un agente (legítimos y maliciosos) contra el vault | [`tools/agent`](tools/agent) |
+| **Demo web** | Página estática que lee el vault, simula pagos y corre el mismo escáner en el navegador; no usa claves | [`web`](web) · [en vivo](https://sandley7.github.io/CrimsonSentry/) |
 | **Cuenta del agente (arquitectura B, prototipo)** | La wallet del agente como contrato: su `__check_auth` aplica la política a cada `transfer`, que es lo que firman x402 y MPP | [`contracts/agent-account`](contracts/agent-account) · [`docs/ARQUITECTURA-B.md`](docs/ARQUITECTURA-B.md) |
 
 ---
@@ -226,14 +229,14 @@ El agente firma a través del keystore de `stellar-cli` (`stellar tx sign --sign
 
 ### Auditoría estática — `cargo scout-audit`
 
-Resultado de la v2: **0 críticos · 2 medios · 0 menores · 9 mejoras**, igual en local y en CI. El reporte completo está en [`docs/scout-report.md`](docs/scout-report.md). (La v1 daba 0 · 1 · 0 · 5.)
+Resultado de la v2 con `soroban-sdk 29.0.1`: **0 críticos · 2 medios · 0 menores · 8 mejoras**, según la CI. El reporte completo está en [`docs/scout-report.md`](docs/scout-report.md). (La v1 daba 0 · 1 · 0 · 5.)
 
 | Hallazgo | Nivel | Veredicto |
 |---|---|---|
 | `dynamic_storage`: `SpendLog` es un `Vec` en storage persistente | Medio | **Riesgo aceptado.** El vector está acotado (≤ `max_payments_per_day` ≤ 100 entradas; medido on-chain: 72 B por pago, unos 7.3 KB en el peor caso, muy por debajo del límite de 64 KB por entrada), se poda en cada pago y solo `pay`, tras `require_auth` del agente, puede escribirlo. Guardarlo como un `Vec` es lo que permite una ventana móvil de 24h exacta |
 | `missing_new_admin_auth` en `propose_owner` | Medio (nuevo en la v2) | **Falso positivo por diseño.** En un cambio en dos pasos, quien propone guarda la dirección y la dirección nueva firma en `accept_owner` (`pending_owner.require_auth()`), que es donde se vuelve dueño. Tests: `owner_rotation_requires_proposal_and_acceptance_by_new_owner` y `nothing_works_without_signatures` |
 | `storage_change_events` ×8 | Mejora | **Falso positivo.** Las funciones que cambian el estado emiten eventos con `#[contractevent]` (SDK ≥ 23), que el detector no reconoce. El test `every_state_change_emits_an_event` lo demuestra |
-| `soroban_version` | Mejora | **Pendiente.** El contrato usa `soroban-sdk 28.0.0` y ya existe la 29 (testnet corre el protocolo 29). Migrarlo cambia el WASM y obliga a repetir la evidencia. Ver el roadmap |
+| `soroban_version` | Mejora | **Resuelto** al migrar de `soroban-sdk 28` a `29.0.1`: scout ya no lo avisa |
 | ~~`dos_unexpected_revert_with_storage`~~ en `window()` | ~~Medio~~ | **Corregido** en la v1: la ventana se calcula con `slice` sobre el log ordenado, sin `push_back` |
 
 Scout 0.3.16 no compila `soroban-sdk 28` tal como viene; [`scripts/scout.sh`](scripts/scout.sh) aplica dos ajustes solo para la auditoría, sin tocar el contrato, y explica por qué.
@@ -336,6 +339,15 @@ Los tests del contrato cubren:
 - `get_status`;
 - que cada cambio de estado emite un evento.
 
+### Demo web
+
+```bash
+python scripts/build-web.py                          # arma _site/ (la página y los módulos del escáner que reutiliza)
+python -m http.server 8080 --directory _site         # http://localhost:8080
+```
+
+La página usa `tools/scanner/checks.js` y `tools/lib/stellar.js` tal cual (el hash del WASM se calcula con WebCrypto, así que corre igual en Node y en el navegador). `web/vault.json` dice qué vaults ofrece: uno de demostración, sin actividad, para que las simulaciones den siempre el mismo resultado, y el oficial de la evidencia. El flujo `.github/workflows/pages.yml` la publica en GitHub Pages.
+
 ### Build
 
 ```bash
@@ -369,6 +381,6 @@ El ataque de pagos paralelos prepara dos pagos de 10 XLM; cada uno por separado 
 - [x] Arquitectura B con x402: cliente que firma para cuentas-contrato y pago verificado y liquidado por el código oficial del facilitador (en local) y por el facilitador alojado de testnet
 - [ ] Arquitectura B con x402: flujo HTTP completo con servidor de recursos, USDC y reducir el costo de las comisiones
 - [ ] Relayer con fee-bump para que el agente no necesite saldo propio
-- [ ] Demo web pública con rechazos verificables en Stellar Expert
+- [x] Demo web pública: vault en vivo, simulador de pagos, escáner en el navegador y evidencia verificable en Stellar Expert
 - [ ] Keeper de TTL e indexador de eventos con pausa automática ante anomalías
 - [ ] Revisión de seguridad independiente antes de cualquier uso con dinero real
