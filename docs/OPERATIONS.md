@@ -73,6 +73,14 @@ bash scripts/demo-corta.sh live
 
 Con `EVIDENCE_DIR` la demo guarda su registro en otra carpeta, con `OPEN_FIRST_REJECTION=0` no abre el navegador solo y `EXPECTED_WASM_FILE` cambia el hash que el escáner compara. Los logs auxiliares y los `.env` locales están ignorados por Git; los `evidence/*.env` versionados solo contienen direcciones públicas. La evidencia del vault v1 del hackathon está en `evidence/v1/`. Los informes Markdown de evidencia se pueden revisar y compartir, verificando primero que no contengan información privada.
 
+## Demo web
+
+`web/` contiene la página y `scripts/build-web.py` la arma en `_site/` junto con los módulos del escáner (`tools/scanner/checks.js`, `owasp.js` y `tools/lib/stellar.js`), el hash del WASM y las transacciones archivadas. Regenera `web/data/evidence.json` a partir de las tablas de `evidence/`; la CI falla si ese archivo no coincide con la evidencia.
+
+Para cambiar los vaults que ofrece, edita `web/vault.json`. El de demostración debe ser un vault sin actividad: las simulaciones no gastan nada, pero si alguien paga con la clave del agente la ventana de 24 h se llena y la demo deja de mostrar un pago aceptado. Con un agente que solo tenga lo justo para fees, el escáner sale casi todo en verde.
+
+La página se publica en GitHub Pages con `.github/workflows/pages.yml` cuando cambia `main`. Requiere que el repositorio tenga Pages con la fuente «GitHub Actions».
+
 ## Archivo de la evidencia
 
 Testnet se reinicia 2 a 4 veces al año, con aviso previo, y entonces se borran contratos, cuentas y transacciones. `python scripts/archive-evidence.py` lee los enlaces de Stellar Expert de los documentos, descarga cada transacción de Horizon y la guarda en `evidence/archive/txs/`, con un índice en `evidence/archive/INDEX.md`. Solo guarda datos públicos. Conviene ejecutarlo después de cada despliegue o demo nuevos y subir el resultado.

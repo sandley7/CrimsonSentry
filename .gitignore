@@ -15,3 +15,6 @@ test_snapshots/
 node_modules/
 .env
 evidence/demo-corta.env
+
+# built public demo (scripts/build-web.py)
+_site/

@@ -1,0 +1,115 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>CrimsonSentry · demo en vivo</title>
+  <meta name="description" content="Un contrato guardián en Soroban que impide que un agente de IA gaste fuera de sus reglas. Prueba el contrato real de Stellar testnet desde tu navegador, sin claves.">
+  <link rel="icon" href="logo.jpg">
+  <link rel="stylesheet" href="style.css">
+  <script type="importmap">
+    { "imports": { "@stellar/stellar-sdk": "https://cdn.jsdelivr.net/npm/@stellar/stellar-sdk@17.1.0/+esm" } }
+  </script>
+</head>
+<body>
+  <header class="hero">
+    <img src="logo.jpg" alt="CrimsonSentry" class="logo">
+    <div>
+      <h1>CrimsonSentry</h1>
+      <p class="tagline">Que tu agente pague, pero dentro de las reglas.</p>
+      <p class="sub">Un contrato en Soroban custodia el dinero del agente y revierte on-chain todo pago fuera de la política. Esta página habla con el contrato <strong>real</strong> de Stellar testnet. No pide ni guarda ninguna clave.</p>
+    </div>
+  </header>
+
+  <aside class="notice" role="note">
+    <strong>Alcance:</strong> protege los fondos depositados en el vault y los pagos que pasan por <code>pay</code>. No protege el saldo propio de la cuenta del agente ni intercepta x402/MPP. Es un prototipo de testnet, sin auditoría independiente.
+    <a href="https://github.com/sandley7/CrimsonSentry#limitaciones-conocidas">Limitaciones conocidas</a>
+  </aside>
+
+  <main>
+    <section id="vault" class="card">
+      <h2>1 · El vault, en vivo</h2>
+      <div class="row">
+        <label for="vault-id">Contrato</label>
+        <input id="vault-id" spellcheck="false" autocomplete="off">
+        <button id="load">Leer</button>
+      </div>
+      <p class="hint">Lee <code>get_status()</code> por Stellar RPC. Prueba con cualquier vault CrimsonSentry de testnet.</p>
+      <div class="presets">
+        <span>Elegir:</span>
+        <button class="chip" data-vault="showcase">Vault de demostración (ventana libre)</button>
+        <button class="chip" data-vault="official">Vault oficial (el de la evidencia)</button>
+      </div>
+      <div id="status" class="loading">Cargando…</div>
+    </section>
+
+    <section id="agent" class="card" hidden>
+      <h2>2 · Pon al agente a prueba</h2>
+      <p>Haz de agente comprometido: escribe un pago y mira qué decide el contrato. Es una <em>simulación contra el contrato real</em>: no se envía nada a la red, y las reglas que se disparan son las mismas que revierten una transacción de verdad.</p>
+      <div class="row wrap">
+        <div class="field">
+          <label for="dest">Destino</label>
+          <input id="dest" spellcheck="false" autocomplete="off">
+        </div>
+        <div class="field small">
+          <label for="amount">Monto (XLM)</label>
+          <input id="amount" type="number" min="0" step="0.5" value="8">
+        </div>
+        <button id="sim-pay">Simular pago</button>
+      </div>
+      <div class="presets">
+        <span>Prueba rápido:</span>
+        <button class="chip" data-preset="shop">Comercio permitido</button>
+        <button class="chip" data-preset="stranger">Dirección desconocida</button>
+        <button class="chip" data-preset="owner">El dueño</button>
+        <button class="chip" data-preset="big">Un pago enorme</button>
+        <button class="chip" data-preset="dust">Un pago de polvo</button>
+      </div>
+      <div id="pay-result" class="result" aria-live="polite"></div>
+    </section>
+
+    <section id="owner" class="card" hidden>
+      <h2>3 · ¿Y si roban la clave del dueño?</h2>
+      <p>El dueño puede cambiar la política, pero no más allá de los <strong>techos inmutables</strong> fijados al desplegar. Intenta aflojarla (simulación, como el dueño):</p>
+      <div class="row wrap">
+        <div class="field small">
+          <label for="new-tx">Límite por pago (XLM)</label>
+          <input id="new-tx" type="number" min="0" step="1" value="30">
+        </div>
+        <div class="field small">
+          <label for="new-daily">Límite en 24 h (XLM)</label>
+          <input id="new-daily" type="number" min="0" step="1" value="60">
+        </div>
+        <button id="sim-policy">Simular cambio de política</button>
+      </div>
+      <div id="policy-result" class="result" aria-live="polite"></div>
+      <p class="hint">Aun si el atacante controla toda la política, el retiro del dueño solo puede ir a la dirección de recuperación fija, y lo que sale por el agente queda acotado al techo diario. Ver <a href="https://github.com/sandley7/CrimsonSentry/blob/main/docs/V2.md">qué protege y qué no</a>.</p>
+    </section>
+
+    <section id="scanner" class="card" hidden>
+      <h2>4 · El escáner</h2>
+      <p>Los mismos 17 chequeos de la CLI (<code>tools/scanner/checks.js</code>, sin modificar) corren aquí contra el vault, leyendo el contrato por RPC y las cuentas por Horizon.</p>
+      <button id="run-scan">Ejecutar el escáner</button>
+      <div id="scan-result" aria-live="polite"></div>
+    </section>
+
+    <section id="evidence" class="card">
+      <h2>5 · Lo que pasó de verdad, on-chain</h2>
+      <p>Cada fila es una transacción real de testnet. Las rechazadas aparecen como <em>falló</em>: el contrato las revirtió. Cada una está archivada completa en el repositorio.</p>
+      <div id="evidence-table" class="loading">Cargando…</div>
+    </section>
+  </main>
+
+  <footer>
+    <p>
+      <a href="https://github.com/sandley7/CrimsonSentry">Código en GitHub</a> ·
+      <a href="https://github.com/sandley7/CrimsonSentry/blob/main/docs/V2.md">Contrato v2</a> ·
+      <a href="https://github.com/sandley7/CrimsonSentry/blob/main/docs/SECURITY.md">Seguridad</a> ·
+      <a href="https://github.com/sandley7/CrimsonSentry/blob/main/docs/POSICIONAMIENTO.md">Para quién es</a>
+    </p>
+    <p>Nació en el hackathon Stellar Odyssey Perú 2026 (Santiago Lindley, José Escajadillo y Cesar Guevara). Licencia MIT.</p>
+  </footer>
+
+  <script type="module" src="app.js"></script>
+</body>
+</html>
