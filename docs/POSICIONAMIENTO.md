@@ -41,7 +41,7 @@ El plan para comprobar estas hipótesis está en [VALIDACION.md](VALIDACION.md).
 **Lo que sí aporta hoy:**
 
 1. **La regla se aplica y se verifica en la cadena de Stellar.** Los rechazos quedan como transacciones fallidas con su código de error, comprobables en Stellar Expert (ver la evidencia del [README](../README.md)). Con un motor de políticas externo hay que creer lo que dice el proveedor.
-2. **Varias reglas juntas en un contrato pequeño y legible** (unos 9,8 KB de WASM, 19 tests, 0 hallazgos críticos en `cargo scout-audit`).
+2. **Varias reglas juntas en un contrato pequeño y legible** (unos 14 KB de WASM, 37 tests, 0 hallazgos críticos en `cargo scout-audit`).
 3. **Un escáner que audita la configuración del agente**, no solo el contrato, con mapeo al OWASP Agentic Top 10. No lo comparamos con herramientas de terceros porque no investigamos ese mercado.
 
 **Lo que no aporta, o es más débil:**
