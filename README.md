@@ -225,14 +225,14 @@ El agente firma a través del keystore de `stellar-cli` (`stellar tx sign --sign
 
 ### Auditoría estática — `cargo scout-audit`
 
-Resultado de la v2: **0 críticos · 2 medios · 0 menores · 9 mejoras**, igual en local y en CI. El reporte completo está en [`docs/scout-report.md`](docs/scout-report.md). (La v1 daba 0 · 1 · 0 · 5.)
+Resultado de la v2 con `soroban-sdk 29.0.1`: **0 críticos · 2 medios · 0 menores · 8 mejoras**, según la CI. El reporte completo está en [`docs/scout-report.md`](docs/scout-report.md). (La v1 daba 0 · 1 · 0 · 5.)
 
 | Hallazgo | Nivel | Veredicto |
 |---|---|---|
 | `dynamic_storage`: `SpendLog` es un `Vec` en storage persistente | Medio | **Riesgo aceptado.** El vector está acotado (≤ `max_payments_per_day` ≤ 100 entradas; medido on-chain: 72 B por pago, unos 7.3 KB en el peor caso, muy por debajo del límite de 64 KB por entrada), se poda en cada pago y solo `pay`, tras `require_auth` del agente, puede escribirlo. Guardarlo como un `Vec` es lo que permite una ventana móvil de 24h exacta |
 | `missing_new_admin_auth` en `propose_owner` | Medio (nuevo en la v2) | **Falso positivo por diseño.** En un cambio en dos pasos, quien propone guarda la dirección y la dirección nueva firma en `accept_owner` (`pending_owner.require_auth()`), que es donde se vuelve dueño. Tests: `owner_rotation_requires_proposal_and_acceptance_by_new_owner` y `nothing_works_without_signatures` |
 | `storage_change_events` ×8 | Mejora | **Falso positivo.** Las funciones que cambian el estado emiten eventos con `#[contractevent]` (SDK ≥ 23), que el detector no reconoce. El test `every_state_change_emits_an_event` lo demuestra |
-| `soroban_version` | Mejora | **Pendiente.** El contrato usa `soroban-sdk 28.0.0` y ya existe la 29 (testnet corre el protocolo 29). Migrarlo cambia el WASM y obliga a repetir la evidencia. Ver el roadmap |
+| `soroban_version` | Mejora | **Resuelto** al migrar de `soroban-sdk 28` a `29.0.1`: scout ya no lo avisa |
 | ~~`dos_unexpected_revert_with_storage`~~ en `window()` | ~~Medio~~ | **Corregido** en la v1: la ventana se calcula con `slice` sobre el log ordenado, sin `push_back` |
 
 Scout 0.3.16 no compila `soroban-sdk 28` tal como viene; [`scripts/scout.sh`](scripts/scout.sh) aplica dos ajustes solo para la auditoría, sin tocar el contrato, y explica por qué.
