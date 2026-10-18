@@ -60,7 +60,9 @@ flowchart TD
 
 Los techos y la dirección de recuperación se fijan en el constructor y no tienen ninguna función que los cambie. `withdraw(amount)` solo paga a la dirección de recuperación. El cambio de dueño es en dos pasos: `propose_owner`, y luego `accept_owner` con la firma de la dirección nueva.
 
-## Opción A (en construcción) vs Opción B (objetivo)
+## Opción A (el vault) vs Opción B (la cuenta del agente)
+
+La B tiene un prototipo probado en testnet: ver [ARQUITECTURA-B.md](ARQUITECTURA-B.md).
 
 | | Opción A — actual | Opción B — objetivo |
 |---|---|---|

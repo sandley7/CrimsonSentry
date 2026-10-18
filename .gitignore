@@ -15,3 +15,7 @@ test_snapshots/
 node_modules/
 .env
 evidence/demo-corta.env
+
+# throwaway testnet keys of the architecture-B demo
+tools/agent-account/.keys.json
+tools/agent-account/.last-tx.xdr

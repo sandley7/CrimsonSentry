@@ -59,3 +59,8 @@ Copia de cada transacción citada en los documentos, tomada de Horizon, para que
 | 2026-10-18 06:44:52 | [`ef65d1892c66e6c8…`](txs/ef65d1892c66e6c81795313745355787c1585ceb76ef16629ee5fba8b18b0d42.json) | 5256461 | ⛔ falló (revertida) | `README.md`, `evidence/agent-demo-20261018-014117.md` |
 | 2026-10-18 06:44:57 | [`1b0c399d1dc8f08a…`](txs/1b0c399d1dc8f08a9a6b2eac210cea330bd42662f96265f2c31d3916fb16683b.json) | 5256462 | ⛔ falló (revertida) | `evidence/agent-demo-20261018-014117.md` |
 | 2026-10-18 06:45:32 | [`71caf600b40a47ea…`](txs/71caf600b40a47eaa69c8eb8e2958e5c47f54b957c3c7e582dec50913118a0a2.json) | 5256469 | ⛔ falló (revertida) | `README.md`, `evidence/agent-demo-20261018-014117.md` |
+| 2026-10-18 07:19:02 | [`36acaa4b654dd32a…`](txs/36acaa4b654dd32a5ad20fac324ef617c798524a1c0dd42c1c047650ee4f86e9.json) | 5256871 | ✅ éxito | `evidence/agent-account/testnet-evidence.md` |
+| 2026-10-18 07:20:12 | [`9da0097e489929a2…`](txs/9da0097e489929a2e899374e67895ff668b88ec89b9bbe2c2572e18519683a3b.json) | 5256885 | ⛔ falló (revertida) | `evidence/agent-account/testnet-evidence.md` |
+| 2026-10-18 07:20:32 | [`67999ca59e9f8229…`](txs/67999ca59e9f82293064c8bd6fcef77908391769c33bff836c7e14872d6fbdab.json) | 5256889 | ✅ éxito | `evidence/agent-account/testnet-evidence.md` |
+| 2026-10-18 07:20:37 | [`836419020e2dbb2f…`](txs/836419020e2dbb2f0fe6aaa6e6569c506685c192204446acb4060158c6be529a.json) | 5256890 | ⛔ falló (revertida) | `evidence/agent-account/testnet-evidence.md` |
+| 2026-10-18 07:21:02 | [`a4952d49ae25bb47…`](txs/a4952d49ae25bb474e14474166f35b1b542951c28004bc9691ade432162c02cf.json) | 5256895 | ✅ éxito | `evidence/agent-account/testnet-evidence.md` |

@@ -23,6 +23,7 @@
 | **Policy Vault (v2)** | Contrato Soroban que custodia los fondos del agente y aplica la política en cada pago | [`contracts/policy-vault`](contracts/policy-vault) |
 | **Escáner** | CLI que audita al agente y su vault: semáforo de 17 chequeos mapeado al OWASP Agentic Top 10 (2026) | [`tools/scanner`](tools/scanner) |
 | **Agente demo** | Reproduce los intentos de pago de un agente (legítimos y maliciosos) contra el vault | [`tools/agent`](tools/agent) |
+| **Cuenta del agente (arquitectura B, prototipo)** | La wallet del agente como contrato: su `__check_auth` aplica la política a cada `transfer`, que es lo que firman x402 y MPP | [`contracts/agent-account`](contracts/agent-account) · [`docs/ARQUITECTURA-B.md`](docs/ARQUITECTURA-B.md) |
 
 ---
 
@@ -245,7 +246,7 @@ bash scripts/scout.sh
 ### Limitaciones conocidas
 
 1. **Arquitectura A (MVP, este repo):** el agente llama explícitamente al vault. Si la cuenta del agente tiene saldo propio, puede pagar **sin pasar por el vault**. Por eso el dinero debe estar en el vault, y el escáner lo vigila (C1 y C10). Además, el agente paga los fees de sus propias transacciones, así que siempre conserva algo de saldo; un *relayer* con fee-bump lo eliminaría.
-2. **x402 y MPP:** estos protocolos firman transferencias directamente desde la cuenta del agente (*auth-entry signing*), así que la arquitectura A **no las intercepta**. La **arquitectura B (objetivo)** convierte la wallet del agente en una *contract account* cuyo `__check_auth` aplica esta misma política; así sí es compatible con x402 y MPP. En el modo *Channel* de MPP, la política debe limitar también el monto de apertura del canal.
+2. **x402 y MPP:** estos protocolos firman transferencias directamente desde la cuenta del agente (*auth-entry signing*), así que la arquitectura A **no las intercepta**. La **arquitectura B** convierte la wallet del agente en una *contract account* cuyo `__check_auth` aplica esta misma política, que es lo que x402 y MPP necesitan. Hay un [prototipo probado en testnet](docs/ARQUITECTURA-B.md) (pagos válidos, rechazos y el ataque de pagos paralelos revertido on-chain), pero **todavía no se probó con un facilitador x402**, y el cliente oficial de x402 no sabe firmar para cuentas-contrato. En el modo *Channel* de MPP, la política debe limitar también el monto de apertura del canal.
 3. **Clave del dueño:** si se compromete, el atacante no puede retirar a una dirección propia ni superar los techos, pero **sí puede sacar hasta `max_daily_limit` por cada ventana de 24 h** (aflojando la política y rotando al agente) hasta que alguien reaccione, y con una sola clave el atacante y el dueño legítimo compiten. Mitigación: cuenta del dueño multifirma (C12 del escáner).
 4. **Los techos y la dirección de recuperación no se pueden cambiar** una vez desplegado el vault. Unos techos altos dan poca protección, y si se pierde la clave de recuperación, `withdraw` deja de ser útil (los fondos solo salen por el camino de pagos del agente, dentro de la política).
 5. **Cuota consumible:** quien robe la clave del agente puede agotar los N pagos del día con el monto mínimo y bloquear al agente legítimo 24h. El mínimo hace que cueste algo; la pérdida de fondos sigue acotada a `daily_limit`, y el dueño puede ajustar la política o pausar.
@@ -319,7 +320,7 @@ source scripts/env.sh        # Git Bash
 ### Tests
 
 ```bash
-cargo test                   # contrato: 37 tests (v2)
+cargo test                   # vault v2: 37 tests · cuenta del agente (arquitectura B): 22 tests
 cd tools && npm test         # escáner: 16 tests
 ```
 
@@ -364,7 +365,8 @@ El ataque de pagos paralelos prepara dos pagos de 10 XLM; cada uno por separado 
 - [x] Demo del agente con rechazos on-chain
 - [x] **v2 del contrato:** roles separados, cambio de dueño en dos pasos, monto mínimo, dirección de recuperación fija y techos inmutables, desplegada en testnet con evidencia
 - [x] Migrar a `soroban-sdk 29` (otro WASM: despliegue y evidencia nuevos)
-- [ ] Arquitectura B: *contract account* con `__check_auth`, compatible con x402/MPP
+- [x] Arquitectura B, prototipo: *contract account* con `__check_auth` que aplica la política, probada en testnet ([detalle](docs/ARQUITECTURA-B.md))
+- [ ] Arquitectura B con x402: cliente propio que firme para cuentas-contrato y prueba contra un facilitador
 - [ ] Relayer con fee-bump para que el agente no necesite saldo propio
 - [ ] Demo web pública con rechazos verificables en Stellar Expert
 - [ ] Keeper de TTL e indexador de eventos con pausa automática ante anomalías

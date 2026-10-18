@@ -69,7 +69,7 @@ Solo si José lo decide:
 
 | Pendiente | Notas |
 |---|---|
-| Arquitectura B y x402 | Cuenta-contrato con `__check_auth`. Lo piden 4 de los 7 jurados. Es el trabajo más grande |
+| Arquitectura B y x402 | Hay un prototipo probado en testnet ([`docs/ARQUITECTURA-B.md`](ARQUITECTURA-B.md)). Falta un cliente x402 que firme para cuentas-contrato y probarlo contra un facilitador. Lo piden 4 de los 7 jurados |
 | Demo web pública | Pedida por un jurado. Requiere una cuenta de hosting (por ejemplo, Vercel) |
 | Validación con clientes | Plan en [`docs/VALIDACION.md`](VALIDACION.md). Lo ejecutan personas; nada se envía de forma automática |
 | Video demo y pitch nuevos | Santiago los grabará de nuevo, con la v2 |
