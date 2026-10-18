@@ -1,6 +1,6 @@
 # Arquitectura B: la wallet del agente como cuenta-contrato (prototipo)
 
-> Estado: **prototipo probado en testnet, sin auditar.** Demuestra que una cuenta-contrato puede aplicar la política de CrimsonSentry a cada transferencia del token, con firmas y un host de Soroban reales. **No** está probado contra un facilitador x402 ni con un cliente x402 oficial: ver [qué falta](#qué-falta-para-x402).
+> Estado: **prototipo probado en testnet, sin auditar.** Demuestra que una cuenta-contrato puede aplicar la política de CrimsonSentry a cada transferencia del token, con firmas y un host de Soroban reales, y que **el código oficial del facilitador x402 de Stellar acepta y liquida un pago cuyo pagador es esa cuenta**. Lo que no está probado: el cliente oficial de x402 (no sabe firmar para cuentas-contrato), el facilitador alojado y un flujo HTTP completo. Ver [x402](#x402).
 
 ## Por qué existe
 
@@ -53,24 +53,39 @@ Se reproduce con:
 node tools/agent-account/demo.js init        # claves de prueba desechables y un relayer fondeado
 bash scripts/deploy-account.sh
 bash scripts/demo-account.sh
+
+# x402: una cuenta limpia, y el cliente y el facilitador oficial en local
+ACCOUNT_ALIAS=crimson-agent-account-x402 OUT=evidence/agent-account/x402-deployment.env bash scripts/deploy-account.sh
+cd tools/agent-account/x402 && npm install && node e2e.mjs
 ```
 
 El agente, el dueño y el relayer de esta demo son claves **desechables de testnet**, generadas en `tools/agent-account/.keys.json` (ignorado por Git). No tocan el almacén de claves de Stellar CLI.
 
-## Qué falta para x402
+## x402
 
-Lo que sí se comprobó al leer la [especificación del esquema `exact` de Stellar](https://github.com/coinbase/x402/blob/main/specs/schemes/exact/scheme_exact_stellar.md) y el código de `@x402/stellar` 2.20:
+Prueba de extremo a extremo en testnet, en [`evidence/agent-account/x402-evidence.md`](../evidence/agent-account/x402-evidence.md):
 
-- El cliente arma una transacción con **una** operación `invokeHostFunction` que llama a `transfer(from, to, amount)`, la simula y **firma solo las entradas de autorización**. El facilitador sustituye la fuente de la transacción por la suya y paga las comisiones. Es la misma forma que usa esta demo con su relayer.
-- La especificación dice que la firma de entradas de autorización «admite cuentas C y cuentas G».
-- El facilitador exige que la entrada del pagador esté firmada y que la simulación contra el estado actual tenga éxito, con solo los cambios de saldo esperados. Con una cuenta-contrato, esa simulación ejecuta `__check_auth`, así que la política se aplica también ahí.
+- **Cliente:** [`tools/agent-account/x402/client.mjs`](../tools/agent-account/x402/client.mjs), una copia del cliente oficial de `@x402/stellar` (Apache-2.0) que firma la entrada de autorización con la firma propia de la cuenta.
+- **Facilitador:** `ExactStellarScheme` de `@x402/stellar/exact/facilitator` 2.20, **sin modificar**, ejecutado en local con el relayer como firmante (paga las comisiones y gasta el número de secuencia, como hace un facilitador real).
+- **Resultado:** `verify` válido con la cuenta-contrato como pagador y `settle` correcto en testnet ([`80cc4c7a…`](https://stellar.expert/explorer/testnet/tx/80cc4c7ae7e88796405e0578dfb5ce4ca1858cf38b4623f3c2713961ce44f368)). Un pago de 15 XLM y uno firmado con la clave del dueño hacia el comercio los rechaza la cuenta (`#2` y `#17`) antes de llegar al facilitador.
+
+Lo que se comprobó al leer la [especificación del esquema `exact` de Stellar](https://github.com/coinbase/x402/blob/main/specs/schemes/exact/scheme_exact_stellar.md) y el código de `@x402/stellar`:
+
+- El cliente arma una transacción con **una** operación `invokeHostFunction` que llama a `transfer(from, to, amount)`, la simula y **firma solo las entradas de autorización**. El facilitador sustituye la fuente por la suya.
+- La especificación dice que esta firma «admite cuentas C y cuentas G». El facilitador exige que la entrada del pagador esté firmada y que la simulación contra el estado actual tenga éxito; con una cuenta-contrato, esa simulación ejecuta `__check_auth`, así que la política se aplica también ahí.
+
+Hallazgos:
+
+1. **El cliente oficial no firma para cuentas-contrato.** Con una dirección `C…` falla con `invalid version byte` porque el SDK construye una firma clásica a partir de la dirección. El adaptador evita eso con una `authorizeEntry` propia. Lo ideal sería que el cliente oficial admitiera firmas personalizadas.
+2. **El pago cuesta mucho más.** La comisión de recursos de la simulación es de unos 286 000 stroops (la primera vez que una cuenta paga, unos 647 000, por crear el registro de gastos), frente a 11 700 de una transferencia clásica. **El tope por defecto del facilitador (50 000 stroops) rechaza el pago.** Hay que subirlo, y en pagos pequeños la comisión puede superar el monto. Se podría reducir optimizando el contrato; no se intentó.
+3. **Las credenciales que devuelve hoy la simulación son las clásicas** (`sorobanCredentialsAddress`). El adaptador no maneja la variante V2 que la especificación pide aceptar.
 
 Lo que **no** está resuelto:
 
-1. **El cliente oficial no firma para cuentas-contrato.** `@x402/stellar` pasa el `signAuthEntry` de una wallet al SDK, y esa ruta construye una firma clásica a partir de la dirección del pagador; con una dirección `C…` falla. Haría falta un cliente x402 propio que firme con una `authorizeEntry` personalizada, como hace `tools/agent-account/demo.js`.
-2. **Nunca se probó contra un facilitador x402 real** (el servicio alojado ni el código del facilitador en local).
-3. **Un solo token por cuenta.** x402 paga por defecto en USDC; la cuenta puede tener su saldo en un token SAC sin trustline, pero el comercio que recibe sí necesita su trustline.
-4. **Las wallets** tendrían que saber firmar el formato propio de esta cuenta.
+- No se probó con el **facilitador alojado** (puede imponer otras reglas) ni con un **servidor HTTP** de recursos (402, reintento, 200). Se probó la parte específica de Stellar: el pago, su verificación y su liquidación.
+- Se pagó en **XLM nativo**. x402 usa USDC por defecto: la cuenta puede tener un saldo SAC sin trustline, pero el comercio que recibe sí necesita la suya.
+- **Un solo token por cuenta.**
+- Las **wallets** tendrían que saber firmar el formato propio de esta cuenta.
 
 ## Límites y riesgos
 

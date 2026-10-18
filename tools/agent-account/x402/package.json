@@ -1,0 +1,13 @@
+{
+  "name": "crimsonsentry-x402-experiment",
+  "private": true,
+  "type": "module",
+  "description": "Pays an x402 'exact' payment on Stellar testnet from a CrimsonSentry agent account (a contract), using the official facilitator code.",
+  "scripts": {
+    "e2e": "node e2e.mjs"
+  },
+  "dependencies": {
+    "@x402/core": "2.20.0",
+    "@x402/stellar": "2.20.0"
+  }
+}

@@ -64,3 +64,4 @@ Copia de cada transacción citada en los documentos, tomada de Horizon, para que
 | 2026-10-18 07:20:32 | [`67999ca59e9f8229…`](txs/67999ca59e9f82293064c8bd6fcef77908391769c33bff836c7e14872d6fbdab.json) | 5256889 | ✅ éxito | `evidence/agent-account/testnet-evidence.md` |
 | 2026-10-18 07:20:37 | [`836419020e2dbb2f…`](txs/836419020e2dbb2f0fe6aaa6e6569c506685c192204446acb4060158c6be529a.json) | 5256890 | ⛔ falló (revertida) | `evidence/agent-account/testnet-evidence.md` |
 | 2026-10-18 07:21:02 | [`a4952d49ae25bb47…`](txs/a4952d49ae25bb474e14474166f35b1b542951c28004bc9691ade432162c02cf.json) | 5256895 | ✅ éxito | `evidence/agent-account/testnet-evidence.md` |
+| 2026-10-18 07:33:12 | [`80cc4c7ae7e88796…`](txs/80cc4c7ae7e88796405e0578dfb5ce4ca1858cf38b4623f3c2713961ce44f368.json) | 5257041 | ✅ éxito | `docs/ARQUITECTURA-B.md`, `evidence/agent-account/x402-evidence.md` |
