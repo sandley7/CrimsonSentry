@@ -14,6 +14,8 @@
 
 > **Origen:** CrimsonSentry nació en el hackathon Stellar Odyssey Perú 2026 como proyecto de los tres autores, en [JoseEscajadillo/CrimsonSentry](https://github.com/JoseEscajadillo/CrimsonSentry). Este repositorio continúa ese trabajo con el historial de commits intacto, de modo que cada autor conserva su autoría. La **v2 del contrato**, que es la versión oficial de este repositorio, integra los cambios de Cesar al contrato (roles separados y cambio de dueño en dos pasos) con su autoría. La rama `harden-policy-and-docs` conserva su propuesta original completa.
 
+🌐 **Demo en vivo (sin claves):** https://sandley7.github.io/CrimsonSentry/: lee el vault real de testnet, simula pagos fuera de las reglas contra el contrato y ejecuta el escáner en el navegador.
+
 🎬 **Video demo:** https://www.youtube.com/watch?v=lgQYx48JnV0 · 🎤 **Video pitch:** https://www.youtube.com/watch?v=Lhr5abKy-eI (ambos muestran la **v1**, la que se presentó en el hackathon)
 
 📐 Esquema completo, con diagramas de flujo: [`docs/ARQUITECTURA.md`](docs/ARQUITECTURA.md) · Seguridad: [`docs/SECURITY.md`](docs/SECURITY.md) · Operación: [`docs/OPERATIONS.md`](docs/OPERATIONS.md) · Escáner: [`docs/SCANNER.md`](docs/SCANNER.md) · Qué cambia en la v2: [`docs/V2.md`](docs/V2.md) · Para quién es y frente a qué alternativas: [`docs/POSICIONAMIENTO.md`](docs/POSICIONAMIENTO.md) · Plan de validación: [`docs/VALIDACION.md`](docs/VALIDACION.md) · Guía para colaboradores: [`docs/PARA-COLABORADORES.md`](docs/PARA-COLABORADORES.md)
@@ -23,6 +25,7 @@
 | **Policy Vault (v2)** | Contrato Soroban que custodia los fondos del agente y aplica la política en cada pago | [`contracts/policy-vault`](contracts/policy-vault) |
 | **Escáner** | CLI que audita al agente y su vault: semáforo de 17 chequeos mapeado al OWASP Agentic Top 10 (2026) | [`tools/scanner`](tools/scanner) |
 | **Agente demo** | Reproduce los intentos de pago de un agente (legítimos y maliciosos) contra el vault | [`tools/agent`](tools/agent) |
+| **Demo web** | Página estática que lee el vault, simula pagos y corre el mismo escáner en el navegador; no usa claves | [`web`](web) · [en vivo](https://sandley7.github.io/CrimsonSentry/) |
 
 ---
 
@@ -335,6 +338,15 @@ Los tests del contrato cubren:
 - `get_status`;
 - que cada cambio de estado emite un evento.
 
+### Demo web
+
+```bash
+python scripts/build-web.py                          # arma _site/ (la página y los módulos del escáner que reutiliza)
+python -m http.server 8080 --directory _site         # http://localhost:8080
+```
+
+La página usa `tools/scanner/checks.js` y `tools/lib/stellar.js` tal cual (el hash del WASM se calcula con WebCrypto, así que corre igual en Node y en el navegador). `web/vault.json` dice qué vaults ofrece: uno de demostración, sin actividad, para que las simulaciones den siempre el mismo resultado, y el oficial de la evidencia. El flujo `.github/workflows/pages.yml` la publica en GitHub Pages.
+
 ### Build
 
 ```bash
@@ -366,6 +378,6 @@ El ataque de pagos paralelos prepara dos pagos de 10 XLM; cada uno por separado 
 - [x] Migrar a `soroban-sdk 29` (otro WASM: despliegue y evidencia nuevos)
 - [ ] Arquitectura B: *contract account* con `__check_auth`, compatible con x402/MPP
 - [ ] Relayer con fee-bump para que el agente no necesite saldo propio
-- [ ] Demo web pública con rechazos verificables en Stellar Expert
+- [x] Demo web pública: vault en vivo, simulador de pagos, escáner en el navegador y evidencia verificable en Stellar Expert
 - [ ] Keeper de TTL e indexador de eventos con pausa automática ante anomalías
 - [ ] Revisión de seguridad independiente antes de cualquier uso con dinero real

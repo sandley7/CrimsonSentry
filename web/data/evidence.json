@@ -1,0 +1,121 @@
+[
+  {
+    "group": "Pagos paralelos y kill switch",
+    "label": "Pago válido de 10 XLM",
+    "result": "✅ SUCCESS",
+    "ok": true,
+    "hash": "42c5dbb2bc11c9deba7546a8a8c6cf047d8ede2bff917d6112f2e8879819b991"
+  },
+  {
+    "group": "Pagos paralelos y kill switch",
+    "label": "Ataque: pago paralelo A de 10 XLM (acumulado 20)",
+    "result": "✅ SUCCESS",
+    "ok": true,
+    "hash": "e1823c2120275bcf5c5ad4d234d2653e05b70841de775973bdc1f3a28a152e47"
+  },
+  {
+    "group": "Pagos paralelos y kill switch",
+    "label": "Ataque: pago paralelo B de 10 XLM (acumulado 30 > 25)",
+    "result": "⛔ FAILED (revertida)",
+    "ok": false,
+    "hash": "28e5ef02603a2246723b5e889b94bb4940e796fb134228bf8281b6f433f02e63"
+  },
+  {
+    "group": "Lo que añade la v2",
+    "label": "Pago de 0,5 XLM, por debajo del mínimo de 1 XLM, enviado aunque la simulación lo rechaza",
+    "result": "⛔ FAILED: Error(Contract, #12) UnderMinAmount",
+    "ok": false,
+    "hash": "e3c8a91d381b437ec1de3a440c8b0f2d48066eb72f42abdddb8bff840e691410"
+  },
+  {
+    "group": "Lo que añade la v2",
+    "label": "Pago legítimo de 3 XLM al comercio",
+    "result": "✅ SUCCESS",
+    "ok": true,
+    "hash": "9b8d115f2dca424610d978b89cd09113aacb81ecdd428bca44888b78db737edd"
+  },
+  {
+    "group": "Lo que añade la v2",
+    "label": "El dueño retira 10 XLM: el dinero va solo a la dirección de recuperación (evento withdrawn)",
+    "result": "✅",
+    "ok": true,
+    "hash": "22ab609b070547ea3f40794236ac6e3e96d47b1f31c4ced629861f7a14748241"
+  },
+  {
+    "group": "Lo que añade la v2",
+    "label": "El dueño fija la política exactamente en el techo (20 / 50 XLM)",
+    "result": "✅",
+    "ok": true,
+    "hash": "cf8b47b614136c8369a1fe203bb52fc94785c0b1624b52658313453e3f4fcf96"
+  },
+  {
+    "group": "Lo que añade la v2",
+    "label": "El dueño restaura la política original (10 / 25 XLM)",
+    "result": "✅",
+    "ok": true,
+    "hash": "61dfafb5a3547a29e249aa5a024487e9f6b9ea6f6eb14f52e7a74c28cb7879ba"
+  },
+  {
+    "group": "Demo del agente (cliente comprometido)",
+    "label": "factura · 8 XLM → GC6DTO…",
+    "result": "✅ SUCCESS",
+    "ok": true,
+    "hash": "de278b1132ac4f603c31786fadbb8b22c5968752d279330c26db20e1de73b172"
+  },
+  {
+    "group": "Demo del agente (cliente comprometido)",
+    "label": "destino-desconocido · 50 XLM → GAMV2L…",
+    "result": "⛔ FAILED on-chain — Error(Contract, #1) NotAllowlisted",
+    "ok": false,
+    "hash": "6acaa660e2aa9f73da3b26033cf8a406bc3a17ba06448a1ba6229eabca5c5e33"
+  },
+  {
+    "group": "Demo del agente (cliente comprometido)",
+    "label": "bucle 1/6 · 1 XLM → GC6DTO…",
+    "result": "✅ SUCCESS",
+    "ok": true,
+    "hash": "3f18c963c7c71d15c7d7cf11312497472e03095a039c639f2ab5adbf54e821a3"
+  },
+  {
+    "group": "Demo del agente (cliente comprometido)",
+    "label": "bucle 2/6 · 1 XLM → GC6DTO…",
+    "result": "✅ SUCCESS",
+    "ok": true,
+    "hash": "384bd9b3010680b37f8d97b43530208d3eda22aaa6779b3bfec730810fe6f044"
+  },
+  {
+    "group": "Demo del agente (cliente comprometido)",
+    "label": "bucle 3/6 · 1 XLM → GC6DTO…",
+    "result": "✅ SUCCESS",
+    "ok": true,
+    "hash": "8219086a2589f9cd0090638afa0d344e62f67414c3d1ee199c0377a6e4f8add0"
+  },
+  {
+    "group": "Demo del agente (cliente comprometido)",
+    "label": "bucle 4/6 · 1 XLM → GC6DTO…",
+    "result": "✅ SUCCESS",
+    "ok": true,
+    "hash": "be3a83b603ed26f88a2cd09f6d01e115d8afa0f2c21644ff47adc9e304409fbb"
+  },
+  {
+    "group": "Demo del agente (cliente comprometido)",
+    "label": "bucle 5/6 · 1 XLM → GC6DTO…",
+    "result": "⛔ FAILED on-chain — Error(Contract, #8) TooManyPayments",
+    "ok": false,
+    "hash": "ef65d1892c66e6c81795313745355787c1585ceb76ef16629ee5fba8b18b0d42"
+  },
+  {
+    "group": "Demo del agente (cliente comprometido)",
+    "label": "bucle 6/6 · 1 XLM → GC6DTO…",
+    "result": "⛔ FAILED on-chain — Error(Contract, #8) TooManyPayments",
+    "ok": false,
+    "hash": "1b0c399d1dc8f08a9a6b2eac210cea330bd42662f96265f2c31d3916fb16683b"
+  },
+  {
+    "group": "Demo del agente (cliente comprometido)",
+    "label": "tras-pausa · 2 XLM → GC6DTO…",
+    "result": "⛔ FAILED on-chain — Error(Contract, #7) Paused",
+    "ok": false,
+    "hash": "71caf600b40a47eaa69c8eb8e2958e5c47f54b957c3c7e582dec50913118a0a2"
+  }
+]
