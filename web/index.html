@@ -93,6 +93,18 @@
       <div id="scan-result" aria-live="polite"></div>
     </section>
 
+    <section id="account" class="card">
+      <h2>Arquitectura B: la wallet del agente como contrato</h2>
+      <p>En la arquitectura A el agente llama a un vault. Los protocolos x402 y MPP, en cambio, firman una <em>transferencia desde la cuenta del agente</em>. Por eso hay un prototipo en el que <strong>la propia cuenta del agente es un contrato</strong>: cuando alguien intenta mover su dinero, el host de Soroban le pregunta a su <code>__check_auth</code>, que aplica la misma política.</p>
+      <ul>
+        <li>La clave del agente solo puede autorizar <code>transfer</code> del token dentro de la política. No puede aprobar gastadores, llamar a otros contratos ni crear contratos.</li>
+        <li>La clave del dueño solo puede mover fondos a la dirección de recuperación.</li>
+        <li>Probado en testnet: pagos válidos, rechazos <code>#1</code>, <code>#2</code>, <code>#12</code>, <code>#17</code>, un cliente comprometido que falla on-chain y el ataque de pagos paralelos revertido con <code>#3</code>.</li>
+        <li><strong>x402:</strong> el código oficial del facilitador de Stellar y el facilitador alojado de testnet verificaron y liquidaron un pago cuyo pagador es esa cuenta. Costó unas 25 veces más en comisiones que una transferencia clásica, y el cliente oficial no sabe firmar para cuentas-contrato.</li>
+      </ul>
+      <p class="hint">Es un prototipo de testnet, sin auditoría. <a href="https://github.com/sandley7/CrimsonSentry/blob/main/docs/ARQUITECTURA-B.md">Qué está probado y qué no</a> · las transacciones están en la tabla de abajo.</p>
+    </section>
+
     <section id="evidence" class="card">
       <h2>5 · Lo que pasó de verdad, on-chain</h2>
       <p>Cada fila es una transacción real de testnet. Las rechazadas aparecen como <em>falló</em>: el contrato las revirtió. Cada una está archivada completa en el repositorio.</p>

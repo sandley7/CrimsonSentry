@@ -56,6 +56,18 @@ def build_evidence():
     items += rows(ev / "testnet-v2-features.md", "Lo que añade la v2")
     for demo in sorted(ev.glob("agent-demo-*.md")):
         items += rows(demo, "Demo del agente (cliente comprometido)", with_step=True)
+    # Architecture B: the agent account (a contract) enforcing the policy in __check_auth
+    acct = ev / "agent-account"
+    if (acct / "testnet-evidence.md").exists():
+        items += rows(acct / "testnet-evidence.md", "Arquitectura B: pagar desde una cuenta-contrato")
+    for name, label in (("x402-evidence.md", "x402: pago liquidado por el código oficial del facilitador (en local)"),
+                        ("x402-hosted-evidence.md", "x402: pago liquidado por el facilitador alojado de testnet")):
+        f = acct / name
+        if f.exists():
+            m = re.search(r"settle[^\n]*" + TX.pattern, f.read_text(encoding="utf-8"))
+            if m:
+                items.append({"group": "Arquitectura B: pagar desde una cuenta-contrato", "label": label,
+                              "result": "✅ SUCCESS", "ok": True, "hash": m.group(1)})
     data = ROOT / "web" / "data"
     data.mkdir(parents=True, exist_ok=True)
     (data / "evidence.json").write_text(json.dumps(items, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")

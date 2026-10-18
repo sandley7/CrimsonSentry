@@ -117,5 +117,54 @@
     "result": "⛔ FAILED on-chain — Error(Contract, #7) Paused",
     "ok": false,
     "hash": "71caf600b40a47eaa69c8eb8e2958e5c47f54b957c3c7e582dec50913118a0a2"
+  },
+  {
+    "group": "Arquitectura B: pagar desde una cuenta-contrato",
+    "label": "Pago válido de 8 XLM al comercio",
+    "result": "✅ SUCCESS",
+    "ok": true,
+    "hash": "36acaa4b654dd32a5ad20fac324ef617c798524a1c0dd42c1c047650ee4f86e9"
+  },
+  {
+    "group": "Arquitectura B: pagar desde una cuenta-contrato",
+    "label": "8 XLM a una dirección fuera de la allowlist, enviado aunque la política ya no lo permite",
+    "result": "⛔ FAILED: Error(Contract, #1)",
+    "ok": false,
+    "hash": "9da0097e489929a2e899374e67895ff668b88ec89b9bbe2c2572e18519683a3b"
+  },
+  {
+    "group": "Arquitectura B: pagar desde una cuenta-contrato",
+    "label": "Ataque: pago paralelo A de 10 XLM (acumulado 18)",
+    "result": "✅ SUCCESS",
+    "ok": true,
+    "hash": "67999ca59e9f82293064c8bd6fcef77908391769c33bff836c7e14872d6fbdab"
+  },
+  {
+    "group": "Arquitectura B: pagar desde una cuenta-contrato",
+    "label": "Ataque: pago paralelo B de 10 XLM (acumulado 28 > 25)",
+    "result": "⛔ FAILED: Error(Contract, #3)",
+    "ok": false,
+    "hash": "836419020e2dbb2f0fe6aaa6e6569c506685c192204446acb4060158c6be529a"
+  },
+  {
+    "group": "Arquitectura B: pagar desde una cuenta-contrato",
+    "label": "El dueño mueve 10 XLM a la dirección de recuperación",
+    "result": "✅ SUCCESS",
+    "ok": true,
+    "hash": "a4952d49ae25bb474e14474166f35b1b542951c28004bc9691ade432162c02cf"
+  },
+  {
+    "group": "Arquitectura B: pagar desde una cuenta-contrato",
+    "label": "x402: pago liquidado por el código oficial del facilitador (en local)",
+    "result": "✅ SUCCESS",
+    "ok": true,
+    "hash": "80cc4c7ae7e88796405e0578dfb5ce4ca1858cf38b4623f3c2713961ce44f368"
+  },
+  {
+    "group": "Arquitectura B: pagar desde una cuenta-contrato",
+    "label": "x402: pago liquidado por el facilitador alojado de testnet",
+    "result": "✅ SUCCESS",
+    "ok": true,
+    "hash": "3f7faedbf00b7a7b38bb84e18e7387a11c9c16bb6772d3ea0b69cfcde5ff717e"
   }
 ]
