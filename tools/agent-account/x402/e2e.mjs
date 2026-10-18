@@ -122,7 +122,7 @@ const md = `# x402 en testnet: pago desde una cuenta-contrato
 - Cuenta pagadora (contrato): [\`${ACCOUNT}\`](${EXPERT}/contract/${ACCOUNT})
 - Comercio (\`payTo\`): \`${SHOP}\` · Facilitador: ${relayer.address.slice(0, 8)}…${relayer.address.slice(-6)} (el relayer)
 - **Cliente:** \`tools/agent-account/x402/client.mjs\`, una copia del cliente oficial de \`@x402/stellar\` que firma para una cuenta-contrato.
-- **Facilitador:** \`ExactStellarScheme\` de \`@x402/stellar/exact/facilitator\` 2.20, **sin modificar**, ejecutado en local con el relayer como firmante.
+- **Facilitador:** \`ExactStellarScheme\` de \`@x402/stellar/exact/facilitator\` 2.28, **sin modificar**, ejecutado en local con el relayer como firmante.
 - No se usó el servicio de facilitador alojado ni un servidor HTTP de recursos.
 
 | Paso | Resultado |

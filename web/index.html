@@ -100,7 +100,7 @@
         <li>La clave del agente solo puede autorizar <code>transfer</code> del token dentro de la política. No puede aprobar gastadores, llamar a otros contratos ni crear contratos.</li>
         <li>La clave del dueño solo puede mover fondos a la dirección de recuperación.</li>
         <li>Probado en testnet: pagos válidos, rechazos <code>#1</code>, <code>#2</code>, <code>#12</code>, <code>#17</code>, un cliente comprometido que falla on-chain y el ataque de pagos paralelos revertido con <code>#3</code>.</li>
-        <li><strong>x402:</strong> el código oficial del facilitador de Stellar y el facilitador alojado de testnet verificaron y liquidaron un pago cuyo pagador es esa cuenta. Costó unas 25 veces más en comisiones que una transferencia clásica, y el cliente oficial no sabe firmar para cuentas-contrato.</li>
+        <li><strong>x402:</strong> un flujo completo por HTTP (la API responde 402, el agente paga desde su cuenta-contrato y recibe 200) funciona contra el facilitador alojado de testnet, y el código oficial del facilitador también liquida el pago. Costó unas 25 veces más en comisiones que una transferencia clásica, y el cliente oficial no sabe firmar para cuentas-contrato.</li>
       </ul>
       <p class="hint">Es un prototipo de testnet, sin auditoría. <a href="https://github.com/sandley7/CrimsonSentry/blob/main/docs/ARQUITECTURA-B.md">Qué está probado y qué no</a> · las transacciones están en la tabla de abajo.</p>
     </section>

@@ -158,13 +158,20 @@
     "label": "x402: pago liquidado por el código oficial del facilitador (en local)",
     "result": "✅ SUCCESS",
     "ok": true,
-    "hash": "80cc4c7ae7e88796405e0578dfb5ce4ca1858cf38b4623f3c2713961ce44f368"
+    "hash": "95b89d385e34a3bd9c15ff4c3e93c5b2a4351872e5d17e8f01888293337c0559"
   },
   {
     "group": "Arquitectura B: pagar desde una cuenta-contrato",
     "label": "x402: pago liquidado por el facilitador alojado de testnet",
     "result": "✅ SUCCESS",
     "ok": true,
-    "hash": "3f7faedbf00b7a7b38bb84e18e7387a11c9c16bb6772d3ea0b69cfcde5ff717e"
+    "hash": "576f8b08d93dd4b11ae40ab55fd3ce77a7998c9752f98430c600edd072a244d9"
+  },
+  {
+    "group": "Arquitectura B: pagar desde una cuenta-contrato",
+    "label": "x402 por HTTP: GET /premium devuelve 402, el agente paga desde su cuenta-contrato y recibe 200",
+    "result": "✅ SUCCESS",
+    "ok": true,
+    "hash": "d9658fbbeb012a1944da939bef6ae38addf06bd8acdeae4dc23c52a7d54faeef"
   }
 ]

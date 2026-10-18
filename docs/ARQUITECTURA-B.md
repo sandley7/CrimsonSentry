@@ -1,6 +1,6 @@
 # Arquitectura B: la wallet del agente como cuenta-contrato (prototipo)
 
-> Estado: **prototipo probado en testnet, sin auditar.** Demuestra que una cuenta-contrato puede aplicar la política de CrimsonSentry a cada transferencia del token, con firmas y un host de Soroban reales, y que **tanto el código oficial del facilitador x402 de Stellar como el facilitador alojado de testnet aceptan y liquidan un pago cuyo pagador es esa cuenta**. Lo que no está probado: el cliente oficial de x402 (no sabe firmar para cuentas-contrato), un flujo HTTP completo con servidor de recursos, USDC y las wallets. Ver [x402](#x402).
+> Estado: **prototipo probado en testnet, sin auditar.** Demuestra que una cuenta-contrato puede aplicar la política de CrimsonSentry a cada transferencia del token, con firmas y un host de Soroban reales, y que **un flujo x402 completo por HTTP (402, pago desde la cuenta, 200) funciona contra el facilitador alojado de testnet, y el código oficial del facilitador también acepta y liquida el pago**. Lo que no está probado: el cliente oficial de x402 (no sabe firmar para cuentas-contrato), USDC y las wallets. Ver [x402](#x402).
 
 ## Por qué existe
 
@@ -65,10 +65,11 @@ El agente, el dueño y el relayer de esta demo son claves **desechables de testn
 
 Prueba de extremo a extremo en testnet, en [`evidence/agent-account/x402-evidence.md`](../evidence/agent-account/x402-evidence.md):
 
-- **Cliente:** [`tools/agent-account/x402/client.mjs`](../tools/agent-account/x402/client.mjs), una copia del cliente oficial de `@x402/stellar` (Apache-2.0) que firma la entrada de autorización con la firma propia de la cuenta.
-- **Facilitador:** `ExactStellarScheme` de `@x402/stellar/exact/facilitator` 2.20, **sin modificar**, ejecutado en local con el relayer como firmante (paga las comisiones y gasta el número de secuencia, como hace un facilitador real).
-- **Resultado:** `verify` válido con la cuenta-contrato como pagador y `settle` correcto en testnet ([`80cc4c7a…`](https://stellar.expert/explorer/testnet/tx/80cc4c7ae7e88796405e0578dfb5ce4ca1858cf38b4623f3c2713961ce44f368)). Un pago de 15 XLM y uno firmado con la clave del dueño hacia el comercio los rechaza la cuenta (`#2` y `#17`) antes de llegar al facilitador.
-- **Facilitador alojado:** el mismo pago, enviado por HTTP al facilitador público de testnet (`channels.openzeppelin.com/x402/testnet`, con una clave gratuita sin registro), también da `verify` válido y `settle` correcto ([`3f7faedb…`](https://stellar.expert/explorer/testnet/tx/3f7faedbf00b7a7b38bb84e18e7387a11c9c16bb6772d3ea0b69cfcde5ff717e)), con las comisiones pagadas por el firmante del facilitador. Detalle en [`evidence/agent-account/x402-hosted-evidence.md`](../evidence/agent-account/x402-hosted-evidence.md). Su tope de comisión no rechazó el pago, a diferencia del valor por defecto del código local.
+- **Cliente:** [`tools/agent-account/x402/client.mjs`](../tools/agent-account/x402/client.mjs), una copia del cliente oficial de `@x402/stellar` 2.28 (Apache-2.0) que firma la entrada de autorización con la firma propia de la cuenta.
+- **Facilitador:** `ExactStellarScheme` de `@x402/stellar/exact/facilitator` 2.28, **sin modificar**, ejecutado en local con el relayer como firmante (paga las comisiones y gasta el número de secuencia, como hace un facilitador real).
+- **Resultado:** `verify` válido con la cuenta-contrato como pagador y `settle` correcto en testnet ([`95b89d38…`](https://stellar.expert/explorer/testnet/tx/95b89d385e34a3bd9c15ff4c3e93c5b2a4351872e5d17e8f01888293337c0559)). Un pago de 15 XLM y uno firmado con la clave del dueño hacia el comercio los rechaza la cuenta (`#2` y `#17`) antes de llegar al facilitador.
+- **Facilitador alojado:** el mismo pago, enviado por HTTP al facilitador público de testnet (`channels.openzeppelin.com/x402/testnet`, con una clave gratuita sin registro), también da `verify` válido y `settle` correcto ([`576f8b08…`](https://stellar.expert/explorer/testnet/tx/576f8b08d93dd4b11ae40ab55fd3ce77a7998c9752f98430c600edd072a244d9)), con las comisiones pagadas por el firmante del facilitador. Detalle en [`evidence/agent-account/x402-hosted-evidence.md`](../evidence/agent-account/x402-hosted-evidence.md). Su tope de comisión no rechazó el pago, a diferencia del valor por defecto del código local.
+- **Flujo HTTP completo:** un servidor Express con `@x402/express` cobra 1 XLM por `GET /premium` y un agente con `@x402/fetch` recibe el **402**, paga desde su cuenta-contrato y recibe el **200** con el contenido; el facilitador alojado verificó y liquidó el pago ([`d9658fbb…`](https://stellar.expert/explorer/testnet/tx/d9658fbbeb012a1944da939bef6ae38addf06bd8acdeae4dc23c52a7d54faeef)). Una ruta de 15 XLM, por encima del límite de la cuenta, la rechaza la propia cuenta (`#2`) y no se envía nada a la red. Detalle en [`evidence/agent-account/x402-http-evidence.md`](../evidence/agent-account/x402-http-evidence.md).
 
 Lo que se comprobó al leer la [especificación del esquema `exact` de Stellar](https://github.com/coinbase/x402/blob/main/specs/schemes/exact/scheme_exact_stellar.md) y el código de `@x402/stellar`:
 
@@ -79,11 +80,11 @@ Hallazgos:
 
 1. **El cliente oficial no firma para cuentas-contrato.** Con una dirección `C…` falla con `invalid version byte` porque el SDK construye una firma clásica a partir de la dirección. El adaptador evita eso con una `authorizeEntry` propia. Lo ideal sería que el cliente oficial admitiera firmas personalizadas.
 2. **El pago cuesta mucho más.** La comisión de recursos de la simulación es de unos 286 000 stroops (la primera vez que una cuenta paga, unos 647 000, por crear el registro de gastos), frente a 11 700 de una transferencia clásica. **El tope por defecto del código del facilitador (50 000 stroops) rechaza el pago**; el facilitador alojado lo aceptó. Quien opere un facilitador tiene que aceptar comisiones mucho mayores, y en pagos pequeños la comisión puede superar el monto. Se podría reducir optimizando el contrato; no se intentó.
-3. **Las credenciales que devuelve hoy la simulación son las clásicas** (`sorobanCredentialsAddress`). El adaptador no maneja la variante V2 que la especificación pide aceptar.
+3. **El cliente oficial de x402 trae sus propios controles de gasto** (por defecto, solo USDC y hasta 1 USD por pago). Son del lado del cliente, es decir, fuera de la cadena: un cliente comprometido puede saltárselos, mientras que los de la cuenta se aplican on-chain. Para pagar en XLM hubo que permitirlo explícitamente.
+4. **Las credenciales que devuelve hoy la simulación son las clásicas** (`sorobanCredentialsAddress`). El adaptador no maneja la variante V2 que la especificación pide aceptar.
 
 Lo que **no** está resuelto:
 
-- No se probó un **servidor HTTP** de recursos de punta a punta (402, reintento con la cabecera, 200). Se probó la parte específica de Stellar: el pago, su verificación y su liquidación, también contra el facilitador alojado.
 - Se pagó en **XLM nativo**. x402 usa USDC por defecto: la cuenta puede tener un saldo SAC sin trustline, pero el comercio que recibe sí necesita la suya.
 - **Un solo token por cuenta.**
 - Las **wallets** tendrían que saber firmar el formato propio de esta cuenta.

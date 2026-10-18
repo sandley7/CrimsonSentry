@@ -7,7 +7,10 @@
     "e2e": "node e2e.mjs"
   },
   "dependencies": {
-    "@x402/core": "2.20.0",
-    "@x402/stellar": "2.20.0"
+    "@x402/core": "^2.28.0",
+    "@x402/express": "^2.28.0",
+    "@x402/fetch": "^2.28.0",
+    "@x402/stellar": "^2.28.0",
+    "express": "^5.3.0"
   }
 }

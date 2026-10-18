@@ -61,10 +61,11 @@ def build_evidence():
     if (acct / "testnet-evidence.md").exists():
         items += rows(acct / "testnet-evidence.md", "Arquitectura B: pagar desde una cuenta-contrato")
     for name, label in (("x402-evidence.md", "x402: pago liquidado por el código oficial del facilitador (en local)"),
-                        ("x402-hosted-evidence.md", "x402: pago liquidado por el facilitador alojado de testnet")):
+                        ("x402-hosted-evidence.md", "x402: pago liquidado por el facilitador alojado de testnet"),
+                        ("x402-http-evidence.md", "x402 por HTTP: GET /premium devuelve 402, el agente paga desde su cuenta-contrato y recibe 200")):
         f = acct / name
         if f.exists():
-            m = re.search(r"settle[^\n]*" + TX.pattern, f.read_text(encoding="utf-8"))
+            m = re.search(r"(?:settle|liquidado)[^\n]*" + TX.pattern, f.read_text(encoding="utf-8"))
             if m:
                 items.append({"group": "Arquitectura B: pagar desde una cuenta-contrato", "label": label,
                               "result": "✅ SUCCESS", "ok": True, "hash": m.group(1)})
