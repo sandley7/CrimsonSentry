@@ -67,14 +67,23 @@ jobs:
           row=$(grep -E '^\| policy_vault ' docs/scout-report.md)
           echo "$row"
           echo "$row" | awk -F'|' '{ gsub(/ /, "", $3); gsub(/ /, "", $4); if ($3 != "Analyzed" || $4 + 0 > 0) exit 1 }'
+      # The agent account (architecture B prototype). Report only for now: not a gate until its findings are triaged.
+      - name: scout on the agent account (report only)
+        continue-on-error: true
+        run: bash scripts/scout.sh contracts/agent-account docs/scout-report-agent-account.md
       - name: report
         if: always()
-        run: cat docs/scout-report.md >> "$GITHUB_STEP_SUMMARY" || true
+        run: |
+          cat docs/scout-report.md >> "$GITHUB_STEP_SUMMARY" || true
+          echo >> "$GITHUB_STEP_SUMMARY"
+          cat docs/scout-report-agent-account.md >> "$GITHUB_STEP_SUMMARY" || true
       - uses: actions/upload-artifact@v7
         if: always()
         with:
           name: scout-report
-          path: docs/scout-report.md
+          path: |
+            docs/scout-report.md
+            docs/scout-report-agent-account.md
           if-no-files-found: ignore
 
   web:
