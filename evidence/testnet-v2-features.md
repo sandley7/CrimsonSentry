@@ -1,52 +1,22 @@
-# Evidencia en Stellar testnet: contrato v2
+# Evidencia en Stellar testnet: lo que añade la v2
 
-Registrada el 06/10/2026 sobre el contrato v2, que es la versión oficial. Todo son cuentas y fondos de prueba. La evidencia de la v1 (la del hackathon) está en [`v1/`](v1/testnet-evidence.md).
+- Fecha: 2026-10-18 06:39 UTC
+- Vault: [`CCGYAPPA7BUFILV77KK6IZZANCEB7Q5KYIOT2T263CHZZRNFVV7REVZC`](https://stellar.expert/explorer/testnet/contract/CCGYAPPA7BUFILV77KK6IZZANCEB7Q5KYIOT2T263CHZZRNFVV7REVZC)
+- WASM sha256: `96a2ea9ba8350a77e5615341e0d3d7ae7c27dcb9f1aebafae0f4c8732c155810` ([`wasm-sha256.txt`](wasm-sha256.txt))
+- Dueño `GB5UUMWAFCPATYAIVWXKJ4QJSUESEFIT6KIQD6JTOTXPP7YWWQAYWNIH` · Agente `GAYE3NNWPE3ORQFXZKQ65OHC7AECMGAUC7KENCHHCUC6TXKFKY7XA67L` · Comercio `GC6DTO6SAXUOGW3BTURZQ3TXP523GANDBSLTZ33EUNTDVSCW25JZ5QOS`
+- Recuperación (fija): `GATNLW53CFJ6KBCJXROP5RWVRJO77Y4563KQ7QPTI5OYIGS6P7SGS5I4`
+- Política: 1 a 10 XLM por pago, 25 XLM por 24 h, máx. 5 pagos · Techos: 20 XLM por pago y 50 XLM por 24 h
 
-## Datos del despliegue
-
-| Dato | Valor |
-|---|---|
-| Vault v2 | [`CDXNZEYSITYUYBI4T5JDNLYBWPJ2LXSMW4D3KBJ25H4C2N734VV4KOIJ`](https://stellar.expert/explorer/testnet/contract/CDXNZEYSITYUYBI4T5JDNLYBWPJ2LXSMW4D3KBJ25H4C2N734VV4KOIJ) |
-| WASM sha256 | `3d016235d3512a6ebb49ce30946637bd0e049d40f49552415970080d5bacd9c4` ([`wasm-sha256.txt`](wasm-sha256.txt)). Coincide con el build local y con el hash que el escáner (C13) comprueba on-chain |
-| Dueño | `GB5UUMWAFCPATYAIVWXKJ4QJSUESEFIT6KIQD6JTOTXPP7YWWQAYWNIH` |
-| Agente | `GAYE3NNWPE3ORQFXZKQ65OHC7AECMGAUC7KENCHHCUC6TXKFKY7XA67L` |
-| Dirección de recuperación (fija) | `GATNLW53CFJ6KBCJXROP5RWVRJO77Y4563KQ7QPTI5OYIGS6P7SGS5I4` |
-| Comercio permitido (única dirección de la allowlist) | `GC6DTO6SAXUOGW3BTURZQ3TXP523GANDBSLTZ33EUNTDVSCW25JZ5QOS` |
-| Política | 1 a 10 XLM por pago · 25 XLM por 24 h móviles · máx. 5 pagos en 24 h |
-| Techos inmutables | 20 XLM por pago · 50 XLM por 24 h |
-| Fondos del vault | 100 XLM |
-
-## Qué se comprobó on-chain
-
-| Escenario | Resultado | Transacción |
+| Escenario | Resultado on-chain | Transacción |
 |---|---|---|
-| Subida del WASM | ✅ | [`96c0213b…`](https://stellar.expert/explorer/testnet/tx/96c0213b54993eb51f23c5e9d8bc889e1194edb8539a42dc11c5b89f986dc313) |
-| Despliegue del vault (constructor con recuperación y techos) | ✅ | [`2d958a8b…`](https://stellar.expert/explorer/testnet/tx/2d958a8ba0048d2fd8481b2f2295b4a788efdb559077350a70ab2d1454a9a341) |
-| Fondeo del vault con 100 XLM | ✅ | [`fdfffe52…`](https://stellar.expert/explorer/testnet/tx/fdfffe5239c14e2729808774071c662ac5b3e203d1d0ab6a711fd9e4358b4cd8) |
-| Pago de 0,5 XLM, por debajo del mínimo de 1 XLM, enviado aunque la simulación lo rechaza | ⛔ **FAILED `Error(Contract, #12)` UnderMinAmount** | [`6f7600d7…`](https://stellar.expert/explorer/testnet/tx/6f7600d7c09b0aca176c931a3adc8ab2d0227bccfd6169aece4d0ee5169b3191) |
-| Pago legítimo de 3 XLM al comercio | ✅ SUCCESS | [`87d6ec78…`](https://stellar.expert/explorer/testnet/tx/87d6ec782a036cf9f01abd819727827e48a86aa45cb159356a84058e544bd49b) |
-| El dueño retira 10 XLM: el dinero va **solo** a la dirección de recuperación (evento `withdrawn`) | ✅ | [`edaf0df0…`](https://stellar.expert/explorer/testnet/tx/edaf0df0a3c493fbd406013cb9d052090b3e6dce55171392e4b95233963e8488) |
-| El dueño intenta subir el límite por pago a 30 XLM (techo: 20 XLM) | 🛑 rechazado en simulación: `#14` PolicyOverCeiling | — |
-| El dueño fija la política exactamente en el techo (20 / 50 XLM) | ✅ | [`3daf671c…`](https://stellar.expert/explorer/testnet/tx/3daf671c85c9f42df2b47a55f9739be1b8f14928a076e9e20db39b4c56ae03a8) |
-| El dueño restaura la política original (10 / 25 XLM) | ✅ | [`9dd966ac…`](https://stellar.expert/explorer/testnet/tx/9dd966ac80370ec589645976802b7ed4279fab52c88f6c053d06ce72cd399a8c) |
-| El agente devuelve 9 997 XLM de su saldo propio al dueño | ✅ | [`877aafc5…`](https://stellar.expert/explorer/testnet/tx/877aafc524adc8837b2a457c2da483a31797a89925080240ec6633bef7887e24) |
+| Pago de 0,5 XLM, por debajo del mínimo de 1 XLM, enviado aunque la simulación lo rechaza | ⛔ **FAILED**: `Error(Contract, #12)` UnderMinAmount | [`e3c8a91d…`](https://stellar.expert/explorer/testnet/tx/e3c8a91d381b437ec1de3a440c8b0f2d48066eb72f42abdddb8bff840e691410) |
+| Pago legítimo de 3 XLM al comercio | ✅ SUCCESS | [`9b8d115f…`](https://stellar.expert/explorer/testnet/tx/9b8d115f2dca424610d978b89cd09113aacb81ecdd428bca44888b78db737edd) |
+| El dueño retira 10 XLM: el dinero va **solo** a la dirección de recuperación (evento `withdrawn`) | ✅ | [`22ab609b…`](https://stellar.expert/explorer/testnet/tx/22ab609b070547ea3f40794236ac6e3e96d47b1f31c4ced629861f7a14748241) |
+| El dueño intenta subir el límite por pago a 30 XLM (techo: 20) | 🛑 rechazado en simulación: `#14` PolicyOverCeiling | — |
+| El dueño fija la política exactamente en el techo (20 / 50 XLM) | ✅ | [`cf8b47b6…`](https://stellar.expert/explorer/testnet/tx/cf8b47b614136c8369a1fe203bb52fc94785c0b1624b52658313453e3f4fcf96) |
+| El dueño restaura la política original (10 / 25 XLM) | ✅ | [`61dfafb5…`](https://stellar.expert/explorer/testnet/tx/61dfafb5a3547a29e249aa5a024487e9f6b9ea6f6eb14f52e7a74c28cb7879ba) |
 
-Registro generado por el agente: [`agent-v2-limits.md`](agent-v2-limits.md).
-
-### Escáner sobre este vault, después de devolver el excedente
-
-Veredicto: 🟡 revisar (🔴 0 · 🟡 2 · 🟢 14).
-
-- **C1 🟢**: el agente solo puede mover 1,96 XLM fuera del vault. Antes de devolver el excedente salía 🔴 con 9 999 XLM.
-- **C13 🟢**: el WASM on-chain es el build de esta rama.
-- **C9 🟡**: hay 1 intento rechazado en 24 h (el de `#12`).
-- **C12 🟡**: una sola clave controla el vault.
-
-## Demo completa del agente sobre otro vault v2
-
-Vault [`CCIUPWTI62VHOUZGZ5QOFA2L7TB6LQLOYDKEWMFBP4RR52GVKO3NIA7T`](https://stellar.expert/explorer/testnet/contract/CCIUPWTI62VHOUZGZ5QOFA2L7TB6LQLOYDKEWMFBP4RR52GVKO3NIA7T), creado por `scripts/demo-agente.sh` con un agente nuevo. Pagos aprobados al comercio y rechazos on-chain `#1`, `#8` y `#7`. Registro completo: [`agent-demo-20261006-152126.md`](agent-demo-20261006-152126.md).
-
-El comercio permitido es una wallet de pruebas de Freighter, que pasó de 10 000 a **10 015 XLM** al recibir los pagos de las dos demos (8 + 4 + 3).
+Registro del agente: ver el resultado del escenario `tools/agent/scenario-v2.json`.
 
 ## Lo que esta evidencia no prueba
 

@@ -28,41 +28,45 @@
 
 ## ✅ Evidencia en Stellar testnet (v2, versión oficial)
 
-**Contrato Policy Vault v2:** [`CDXNZEYSITYUYBI4T5JDNLYBWPJ2LXSMW4D3KBJ25H4C2N734VV4KOIJ`](https://stellar.expert/explorer/testnet/contract/CDXNZEYSITYUYBI4T5JDNLYBWPJ2LXSMW4D3KBJ25H4C2N734VV4KOIJ)
-WASM sha256 `3d016235d3512a6ebb49ce30946637bd0e049d40f49552415970080d5bacd9c4` ([`evidence/wasm-sha256.txt`](evidence/wasm-sha256.txt)): idéntico al que compila este repo. Recompilado desde cero da el mismo hash.
+**Contrato Policy Vault v2:** [`CCGYAPPA7BUFILV77KK6IZZANCEB7Q5KYIOT2T263CHZZRNFVV7REVZC`](https://stellar.expert/explorer/testnet/contract/CCGYAPPA7BUFILV77KK6IZZANCEB7Q5KYIOT2T263CHZZRNFVV7REVZC), compilado con `soroban-sdk 29.0.1`.
+WASM sha256 `96a2ea9ba8350a77e5615341e0d3d7ae7c27dcb9f1aebafae0f4c8732c155810` ([`evidence/wasm-sha256.txt`](evidence/wasm-sha256.txt)): idéntico al que compila este repo.
 
 Política: 1 a 10 XLM por pago, 25 XLM por 24 h móviles, máx. 5 pagos en 24 h y un solo comercio en la allowlist. **Techos inmutables:** 20 XLM por pago y 50 XLM por 24 h. **Retiro del dueño:** solo a la dirección de recuperación fijada al desplegar. El vault se fondeó con 100 XLM de testnet.
 
 | Escenario | Resultado on-chain | Transacción |
 |---|---|---|
-| Despliegue del vault (constructor con recuperación y techos) | ✅ | [`2d958a8b…`](https://stellar.expert/explorer/testnet/tx/2d958a8ba0048d2fd8481b2f2295b4a788efdb559077350a70ab2d1454a9a341) |
-| Pago válido de 10 XLM al comercio permitido | ✅ SUCCESS | [`e3cd1527…`](https://stellar.expert/explorer/testnet/tx/e3cd1527d1a63cb6e8ccac3b7aaa089528536be3532b995b430b7b33eb488658) |
-| Ataque de pagos paralelos: pago A de 10 XLM (acumulado 20) | ✅ SUCCESS | [`58ff376c…`](https://stellar.expert/explorer/testnet/tx/58ff376cf8743781d67ea3a00642183c2453424088b818ee89994eb955e5b9ba) |
-| Ataque de pagos paralelos: pago B de 10 XLM (acumulado 30 > 25) | ⛔ **FAILED**: `Error(Contract, #3)` OverDailyLimit | [`e7a809bc…`](https://stellar.expert/explorer/testnet/tx/e7a809bc23d560e03916066bace425dd10cc861337a805ee979198c3b5fa8867) |
-| Pago de 0,5 XLM, por debajo del mínimo de 1 XLM, enviado aunque la simulación lo rechaza | ⛔ **FAILED**: `Error(Contract, #12)` UnderMinAmount | [`6f7600d7…`](https://stellar.expert/explorer/testnet/tx/6f7600d7c09b0aca176c931a3adc8ab2d0227bccfd6169aece4d0ee5169b3191) |
-| El dueño retira 10 XLM: el dinero va **solo** a la dirección de recuperación (evento `withdrawn`) | ✅ | [`edaf0df0…`](https://stellar.expert/explorer/testnet/tx/edaf0df0a3c493fbd406013cb9d052090b3e6dce55171392e4b95233963e8488) |
-| El dueño fija la política exactamente en el techo (20 / 50 XLM) | ✅ | [`3daf671c…`](https://stellar.expert/explorer/testnet/tx/3daf671c85c9f42df2b47a55f9739be1b8f14928a076e9e20db39b4c56ae03a8) |
+| Despliegue del vault (constructor con recuperación y techos) | ✅ | [`439fcc96…`](https://stellar.expert/explorer/testnet/tx/439fcc96b3e3c5be9db29cc2f09313e8b6347a0576db90782947580ce0ef34d2) |
+| Pago válido de 10 XLM al comercio permitido | ✅ SUCCESS | [`42c5dbb2…`](https://stellar.expert/explorer/testnet/tx/42c5dbb2bc11c9deba7546a8a8c6cf047d8ede2bff917d6112f2e8879819b991) |
+| Ataque de pagos paralelos: pago A de 10 XLM (acumulado 20) | ✅ SUCCESS | [`e1823c21…`](https://stellar.expert/explorer/testnet/tx/e1823c2120275bcf5c5ad4d234d2653e05b70841de775973bdc1f3a28a152e47) |
+| Ataque de pagos paralelos: pago B de 10 XLM (acumulado 30 > 25) | ⛔ **FAILED**: `Error(Contract, #3)` OverDailyLimit | [`28e5ef02…`](https://stellar.expert/explorer/testnet/tx/28e5ef02603a2246723b5e889b94bb4940e796fb134228bf8281b6f433f02e63) |
+| Pago de 0,5 XLM, por debajo del mínimo de 1 XLM, enviado aunque la simulación lo rechaza | ⛔ **FAILED**: `Error(Contract, #12)` UnderMinAmount | [`e3c8a91d…`](https://stellar.expert/explorer/testnet/tx/e3c8a91d381b437ec1de3a440c8b0f2d48066eb72f42abdddb8bff840e691410) |
+| El dueño retira 10 XLM: el dinero va **solo** a la dirección de recuperación (evento `withdrawn`) | ✅ | [`22ab609b…`](https://stellar.expert/explorer/testnet/tx/22ab609b070547ea3f40794236ac6e3e96d47b1f31c4ced629861f7a14748241) |
+| El dueño fija la política exactamente en el techo (20 / 50 XLM) | ✅ | [`cf8b47b6…`](https://stellar.expert/explorer/testnet/tx/cf8b47b614136c8369a1fe203bb52fc94785c0b1624b52658313453e3f4fcf96) |
 | El dueño intenta subir el límite por pago a 30 XLM (techo: 20) | 🛑 rechazado en simulación: `#14` PolicyOverCeiling | — |
 | Pago de 15 XLM (límite por pago 10) | 🛑 rechazado en simulación: `#2` | — |
 | Pago a una dirección fuera de la allowlist | 🛑 rechazado en simulación: `#1` | — |
 | Pago con el vault en pausa (kill switch) | 🛑 rechazado en simulación: `#7` | — |
 
-El pago B pasó la simulación por sí solo, porque se construyó cuando solo había 10 XLM gastados. On-chain, el vault vio el acumulado real y revirtió: **las validaciones fuera de la cadena se pueden burlar; la regla on-chain no.** Detalle: [`evidence/testnet-evidence.md`](evidence/testnet-evidence.md) (escenarios del script) y [`evidence/testnet-v2-features.md`](evidence/testnet-v2-features.md) (recuperación, techos y mínimo).
+El pago B pasó la simulación por sí solo, porque se construyó cuando solo había 10 XLM gastados. On-chain, el vault vio el acumulado real y revirtió: **las validaciones fuera de la cadena se pueden burlar; la regla on-chain no.** Detalle: [`evidence/testnet-evidence.md`](evidence/testnet-evidence.md) (escenarios del script `demo-testnet.sh`) y [`evidence/testnet-v2-features.md`](evidence/testnet-v2-features.md) (recuperación, techos y mínimo, de `demo-v2.sh`).
 
 **Copia de seguridad:** testnet se reinicia varias veces al año y entonces los enlaces de Stellar Expert dejan de funcionar. Cada transacción citada en esta página está archivada completa (sobre, resultado y metadata) en [`evidence/archive/`](evidence/archive/INDEX.md); `python scripts/archive-evidence.py` la regenera.
 
 ### Demo del agente sobre la v2: cada regla, rechazada on-chain
 
-Vault de demo [`CCIUPWTI…NIA7T`](https://stellar.expert/explorer/testnet/contract/CCIUPWTI62VHOUZGZ5QOFA2L7TB6LQLOYDKEWMFBP4RR52GVKO3NIA7T), con la misma política. El agente actúa como un **cliente comprometido**: envía los pagos aunque la simulación los rechace, así que el rechazo lo impone el contrato en la cadena.
+Vault de demo [`CCDEQWLY…MP6H`](https://stellar.expert/explorer/testnet/contract/CCDEQWLYKHHXMUO4VTIE4GAM23HG5MASKYYWS2G4FQ7IS2VCDW6YMP6H), con la misma política. El agente actúa como un **cliente comprometido**: envía los pagos aunque la simulación los rechace, así que el rechazo lo impone el contrato en la cadena.
 
 | Intento del agente | Resultado on-chain | Transacción |
 |---|---|---|
-| Factura legítima: 8 XLM al comercio | ✅ SUCCESS | [`288df18e…`](https://stellar.expert/explorer/testnet/tx/288df18e61d81ac120baff557a03481d076f392ef986b234f5092c14631411a5) |
-| 50 XLM a una dirección fuera de la allowlist | ⛔ **FAILED**: `#1` NotAllowlisted | [`d3611f8e…`](https://stellar.expert/explorer/testnet/tx/d3611f8eab2e6bca6b8042afb0911ff8cda8747b4e6ab82f254b217820bf5b27) |
-| Bucle: pago de más con el máximo de 5 en 24 h | ⛔ **FAILED**: `#8` TooManyPayments | [`a2f2eb41…`](https://stellar.expert/explorer/testnet/tx/a2f2eb416ed14150ea46e4262d694f5f49c009968bde39f85e86f2a4c5584803) |
-| Pago con el vault en pausa | ⛔ **FAILED**: `#7` Paused | [`7f97eaa7…`](https://stellar.expert/explorer/testnet/tx/7f97eaa71405092c483dd88b3b2af75a1c3e645d4965b7e2af4568e40123f593) |
+| Factura legítima: 8 XLM al comercio | ✅ SUCCESS | [`de278b11…`](https://stellar.expert/explorer/testnet/tx/de278b1132ac4f603c31786fadbb8b22c5968752d279330c26db20e1de73b172) |
+| 50 XLM a una dirección fuera de la allowlist | ⛔ **FAILED**: `#1` NotAllowlisted | [`6acaa660…`](https://stellar.expert/explorer/testnet/tx/6acaa660e2aa9f73da3b26033cf8a406bc3a17ba06448a1ba6229eabca5c5e33) |
+| Bucle: pago de más con el máximo de 5 en 24 h | ⛔ **FAILED**: `#8` TooManyPayments | [`ef65d189…`](https://stellar.expert/explorer/testnet/tx/ef65d1892c66e6c81795313745355787c1585ceb76ef16629ee5fba8b18b0d42) |
+| Pago con el vault en pausa | ⛔ **FAILED**: `#7` Paused | [`71caf600…`](https://stellar.expert/explorer/testnet/tx/71caf600b40a47eaa69c8eb8e2958e5c47f54b957c3c7e582dec50913118a0a2) |
 
-Registro completo: [`evidence/agent-demo-20261006-152126.md`](evidence/agent-demo-20261006-152126.md).
+Registro completo: [`evidence/agent-demo-20261018-014117.md`](evidence/agent-demo-20261018-014117.md).
+
+### Evidencia histórica: v2 con `soroban-sdk 28`
+
+La primera versión desplegada de la v2 usaba el SDK 28. Mismo código, otro WASM. Vault [`CDXNZEYS…KOIJ`](https://stellar.expert/explorer/testnet/contract/CDXNZEYSITYUYBI4T5JDNLYBWPJ2LXSMW4D3KBJ25H4C2N734VV4KOIJ), WASM `3d016235…acd9c4`. Su evidencia, incluido el pago B de los pagos paralelos revertido con `#3` ([`e7a809bc…`](https://stellar.expert/explorer/testnet/tx/e7a809bc23d560e03916066bace425dd10cc861337a805ee979198c3b5fa8867)), el rechazo `#12` ([`6f7600d7…`](https://stellar.expert/explorer/testnet/tx/6f7600d7c09b0aca176c931a3adc8ab2d0227bccfd6169aece4d0ee5169b3191)) y el retiro a la recuperación ([`edaf0df0…`](https://stellar.expert/explorer/testnet/tx/edaf0df0a3c493fbd406013cb9d052090b3e6dce55171392e4b95233963e8488)), está en [`evidence/v2-sdk28/`](evidence/v2-sdk28/testnet-v2-features.md).
 
 ### Evidencia histórica de la v1 (la que presentó el hackathon)
 
@@ -145,7 +149,7 @@ Audita un agente y su vault **sin claves ni transacciones**: simula `get_status(
 
 ```bash
 cd tools && npm ci
-node scanner/scan.js --vault CDXNZEYSITYUYBI4T5JDNLYBWPJ2LXSMW4D3KBJ25H4C2N734VV4KOIJ
+node scanner/scan.js --vault CCGYAPPA7BUFILV77KK6IZZANCEB7Q5KYIOT2T263CHZZRNFVV7REVZC
 node scanner/scan.js --vault <C...> --json        # para CI o un dashboard
 node scanner/scan.js --vault CB5X32K4QZLPO6YZYE2KWZW2QAXXUT5AJSJJFF2OP73IYCFMCYZJEBXG --expected-wasm 8f063bdcefa17824502ed78aa6cecca68727fad558c8fb26de2c69d8257c6bef   # vault v1
 ```
@@ -172,7 +176,7 @@ Por defecto compara el WASM on-chain con el hash de [`evidence/wasm-sha256.txt`]
 | C16 | Fondos del vault | Menos que un pago máximo | — |
 | C17 | Dirección de recuperación y techos (solo v2; en la v1 sale 🟡) | Recuperación igual al dueño o al agente, cuenta inexistente o de una sola clave, o un techo diario que alcanza para vaciar el vault | ASI03 · ASI09 |
 
-**Estado del vault v2 oficial:** el agente devolvió 9 997 XLM de su saldo propio al dueño ([`877aafc5…`](https://stellar.expert/explorer/testnet/tx/877aafc524adc8837b2a457c2da483a31797a89925080240ec6633bef7887e24)) y C1 está en 🟢: solo puede mover ~1,96 XLM, para fees. No hay ningún 🔴; los 🟡 permanentes son C12 (una sola clave controla al dueño) y C17 (la cuenta de recuperación de la demo tiene una sola clave). C8 y C9 se encienden mientras la ventana de 24 h esté usada o haya intentos rechazados, por ejemplo justo después de correr las demos.
+**Estado del vault v2 oficial:** la cuenta del agente devolvió 9 997 XLM de su saldo propio al dueño antes de esta demo ([`877aafc5…`](https://stellar.expert/explorer/testnet/tx/877aafc524adc8837b2a457c2da483a31797a89925080240ec6633bef7887e24)) y C1 está en 🟢: solo puede mover ~1,9 XLM, para fees. No hay ningún 🔴; los 🟡 permanentes son C12 (una sola clave controla al dueño) y C17 (la cuenta de recuperación de la demo tiene una sola clave). C8 y C9 se encienden mientras la ventana de 24 h esté usada o haya intentos rechazados, por ejemplo justo después de correr las demos.
 
 **Cómo se vio en la v1:** C1 dio **🔴** al principio, porque la cuenta del agente conservaba ~9,999 XLM de Friendbot, 125 veces lo que protege el vault. Era la [limitación 1](#limitaciones-conocidas) vista en vivo y uno de los jurados la señaló. El 06/10/2026 el agente de la v1 devolvió 9 997 XLM al dueño ([`7769ba70…`](https://stellar.expert/explorer/testnet/tx/7769ba70fda1c792585158819f5b6277eb0ff2adfe5b42a167920759121474a6)) y C1 pasó a 🟢.
 
@@ -286,7 +290,7 @@ El historial de commits del repo refleja este trabajo, con la autoría de cada p
 
 | Componente | Uso | Licencia |
 |---|---|---|
-| [`soroban-sdk`](https://github.com/stellar/rs-soroban-sdk) 28.0.0 | SDK del contrato | Apache-2.0 |
+| [`soroban-sdk`](https://github.com/stellar/rs-soroban-sdk) 29.0.1 | SDK del contrato | Apache-2.0 |
 | [`@stellar/stellar-sdk`](https://github.com/stellar/js-stellar-sdk) 17.1.0 | RPC, Horizon y XDR en el escáner y el agente | Apache-2.0 |
 | [`stellar-cli`](https://github.com/stellar/stellar-cli) 28.x | Build, deploy, firma; la estructura inicial salió de `stellar contract init` | Apache-2.0 |
 | [`cargo-scout-audit`](https://github.com/coinfabrik/scout-audit) 0.3.16 | Auditoría estática (herramienta, no se redistribuye) | MIT |
@@ -298,7 +302,7 @@ El historial de commits del repo refleja este trabajo, con la autoría de cada p
 ### Requisitos
 
 - Rust ≥ 1.91 con el target `wasm32v1-none`
-- `stellar-cli` ≥ 28 y `soroban-sdk 28.0.0`. Testnet corre hoy el protocolo 29; un contrato compilado con el SDK 28 se despliega y funciona (comprobado el 17/10/2026 con la v2). Compilado dos veces desde cero, el WASM de la v2 da el mismo hash
+- `stellar-cli` ≥ 28 y `soroban-sdk 29.0.1`. Testnet corre el protocolo 29; el contrato se compila, se prueba y se despliega con el SDK 29 sin cambios de código respecto al 28 (los 37 tests pasan en ambos)
 - Node.js ≥ 22.12 para el escáner y el agente (`cd tools && npm ci`)
 
 En la PC de desarrollo de José (Windows) el toolchain está en `D:\Rust`; en otras máquinas `scripts/env.sh` no hace nada. Carga el entorno con:
@@ -359,7 +363,7 @@ El ataque de pagos paralelos prepara dos pagos de 10 XLM; cada uno por separado 
 - [x] Escáner CLI con semáforo y mapeo OWASP (17 chequeos)
 - [x] Demo del agente con rechazos on-chain
 - [x] **v2 del contrato:** roles separados, cambio de dueño en dos pasos, monto mínimo, dirección de recuperación fija y techos inmutables, desplegada en testnet con evidencia
-- [ ] Migrar a `soroban-sdk 29` (cambia el WASM: repetir la evidencia y el hash)
+- [x] Migrar a `soroban-sdk 29` (otro WASM: despliegue y evidencia nuevos)
 - [ ] Arquitectura B: *contract account* con `__check_auth`, compatible con x402/MPP
 - [ ] Relayer con fee-bump para que el agente no necesite saldo propio
 - [ ] Demo web pública con rechazos verificables en Stellar Expert

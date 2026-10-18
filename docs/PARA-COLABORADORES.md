@@ -25,14 +25,14 @@ CrimsonSentry es un *Policy Vault* en Soroban (Rust) que custodia los fondos de 
 | Antes (repo de José, hackathon) | Ahora |
 |---|---|
 | Repo [`JoseEscajadillo/CrimsonSentry`](https://github.com/JoseEscajadillo/CrimsonSentry) | Se conserva como **registro del hackathon**. La continuación vive en [`sandley7/CrimsonSentry`](https://github.com/sandley7/CrimsonSentry), con el historial intacto y la autoría de cada persona |
-| Contrato v1 (`CB5X32K4…`), con `withdraw(to, amount)` a cualquier destino y sin techos | **La v2 es la versión oficial** (`CDXNZEYS…KOIJ`): recuperación fija, techos inmutables, monto mínimo, roles separados y cambio de dueño en dos pasos. La v1 sigue desplegada y es la de los videos |
+| Contrato v1 (`CB5X32K4…`), con `withdraw(to, amount)` a cualquier destino y sin techos | **La v2 es la versión oficial** (`CCGYAPPA…VZC`, compilada con `soroban-sdk 29.0.1`): recuperación fija, techos inmutables, monto mínimo, roles separados y cambio de dueño en dos pasos. La v1 sigue desplegada y es la de los videos |
 | PR #2 de Cesar abierto en el repo de José | Su trabajo en el contrato (roles separados y cambio de dueño en dos pasos) está integrado en la v2 **con su autoría** (commit `87e3841`). La rama `harden-policy-and-docs` conserva su propuesta original completa |
 | Escáner con 16 chequeos | 17: C17 revisa la dirección de recuperación y los techos |
 | Evidencia en `evidence/` | La de la v2 está en `evidence/`; la de la v1, en `evidence/v1/` |
 | Vault principal con C1 en 🔴 | C1 en 🟢 desde el 06/10/2026, cuando el agente devolvió 9 997 XLM al dueño |
 | CI en `ubuntu-latest` | Fijada en `ubuntu-24.04` |
 
-Datos públicos de la v2 oficial: vault `CDXNZEYSITYUYBI4T5JDNLYBWPJ2LXSMW4D3KBJ25H4C2N734VV4KOIJ`, WASM `3d016235d3512a6ebb49ce30946637bd0e049d40f49552415970080d5bacd9c4`. Detalle y enlaces a Stellar Expert en [`evidence/`](../evidence/testnet-v2-features.md).
+Datos públicos de la v2 oficial: vault `CCGYAPPA7BUFILV77KK6IZZANCEB7Q5KYIOT2T263CHZZRNFVV7REVZC`, WASM `96a2ea9ba8350a77e5615341e0d3d7ae7c27dcb9f1aebafae0f4c8732c155810`. Detalle y enlaces a Stellar Expert en [`evidence/`](../evidence/testnet-v2-features.md). La primera versión de la v2, con el SDK 28, se conserva en [`evidence/v2-sdk28/`](../evidence/v2-sdk28/testnet-v2-features.md).
 
 ## Cómo comprobar el estado por tu cuenta
 
@@ -43,7 +43,7 @@ git clone https://github.com/sandley7/CrimsonSentry.git && cd CrimsonSentry
 source scripts/env.sh               # en la PC de José carga D:\Rust; en otras, no hace nada
 cargo test                          # contrato: 37 tests
 cd tools && npm ci && npm test      # escáner: 16 tests
-node scanner/scan.js --vault CDXNZEYSITYUYBI4T5JDNLYBWPJ2LXSMW4D3KBJ25H4C2N734VV4KOIJ
+node scanner/scan.js --vault CCGYAPPA7BUFILV77KK6IZZANCEB7Q5KYIOT2T263CHZZRNFVV7REVZC
 ```
 
 Resultado esperado del escáner sobre la v2: ningún 🔴; en 🟡, C12 (una sola clave del dueño) y C17 (la cuenta de recuperación de la demo tiene una sola clave), más C8 y C9 mientras la ventana de 24 h esté usada o haya intentos rechazados. Las identidades de la demo en testnet (`cs-owner`, `cs-agent`, `cs-recovery`, …) se crean con `scripts/deploy-testnet.sh` y viven solo en el almacén local de cada PC.
@@ -69,7 +69,6 @@ Solo si José lo decide:
 
 | Pendiente | Notas |
 |---|---|
-| Migrar a `soroban-sdk 29` | Testnet corre el protocolo 29 y scout avisa de que el SDK 28 no es el último. Cambia el WASM: hay que redesplegar y repetir la evidencia |
 | Arquitectura B y x402 | Cuenta-contrato con `__check_auth`. Lo piden 4 de los 7 jurados. Es el trabajo más grande |
 | Demo web pública | Pedida por un jurado. Requiere una cuenta de hosting (por ejemplo, Vercel) |
 | Validación con clientes | Plan en [`docs/VALIDACION.md`](VALIDACION.md). Lo ejecutan personas; nada se envía de forma automática |
