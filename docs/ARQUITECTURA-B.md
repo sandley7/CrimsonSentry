@@ -38,7 +38,7 @@ Decisiones de diseño:
 
 ## Evidencia
 
-Cuenta [`CBVCNZYO…KWTJ`](https://stellar.expert/explorer/testnet/contract/CBVCNZYOHMOW3WLUKHEND3FXUOBGTFRZUVGDDB7NLEIYSP37GDEPKWTJ), con un relayer propio que paga las comisiones. Todo en [`evidence/agent-account/testnet-evidence.md`](../evidence/agent-account/testnet-evidence.md):
+Cuenta [`CC3ZG5MN…TZ5`](https://stellar.expert/explorer/testnet/contract/CC3ZG5MN6MDUQDCTOZ5IFEPH7P5FEJGYZ2G3SOILGJDLRW32TNSUDTZ5) (WASM `3abe847a…a412f`, [`evidence/agent-account/wasm-sha256.txt`](../evidence/agent-account/wasm-sha256.txt)), con un relayer propio que paga las comisiones. Todo en [`evidence/agent-account/testnet-evidence.md`](../evidence/agent-account/testnet-evidence.md):
 
 - ✅ Pago válido de 8 XLM, firmado por el agente.
 - 🛑 Fuera de la política, con la autorización real (modo `enforce`): `#1`, `#12`, `#2`; y `#17` para la clave del dueño hacia un destino que no es la recuperación.
@@ -67,9 +67,9 @@ Prueba de extremo a extremo en testnet, en [`evidence/agent-account/x402-evidenc
 
 - **Cliente:** [`tools/agent-account/x402/client.mjs`](../tools/agent-account/x402/client.mjs), una copia del cliente oficial de `@x402/stellar` 2.28 (Apache-2.0) que firma la entrada de autorización con la firma propia de la cuenta.
 - **Facilitador:** `ExactStellarScheme` de `@x402/stellar/exact/facilitator` 2.28, **sin modificar**, ejecutado en local con el relayer como firmante (paga las comisiones y gasta el número de secuencia, como hace un facilitador real).
-- **Resultado:** `verify` válido con la cuenta-contrato como pagador y `settle` correcto en testnet ([`95b89d38…`](https://stellar.expert/explorer/testnet/tx/95b89d385e34a3bd9c15ff4c3e93c5b2a4351872e5d17e8f01888293337c0559)). Un pago de 15 XLM y uno firmado con la clave del dueño hacia el comercio los rechaza la cuenta (`#2` y `#17`) antes de llegar al facilitador.
-- **Facilitador alojado:** el mismo pago, enviado por HTTP al facilitador público de testnet (`channels.openzeppelin.com/x402/testnet`, con una clave gratuita sin registro), también da `verify` válido y `settle` correcto ([`576f8b08…`](https://stellar.expert/explorer/testnet/tx/576f8b08d93dd4b11ae40ab55fd3ce77a7998c9752f98430c600edd072a244d9)), con las comisiones pagadas por el firmante del facilitador. Detalle en [`evidence/agent-account/x402-hosted-evidence.md`](../evidence/agent-account/x402-hosted-evidence.md). Su tope de comisión no rechazó el pago, a diferencia del valor por defecto del código local.
-- **Flujo HTTP completo:** un servidor Express con `@x402/express` cobra 1 XLM por `GET /premium` y un agente con `@x402/fetch` recibe el **402**, paga desde su cuenta-contrato y recibe el **200** con el contenido; el facilitador alojado verificó y liquidó el pago ([`d9658fbb…`](https://stellar.expert/explorer/testnet/tx/d9658fbbeb012a1944da939bef6ae38addf06bd8acdeae4dc23c52a7d54faeef)). Una ruta de 15 XLM, por encima del límite de la cuenta, la rechaza la propia cuenta (`#2`) y no se envía nada a la red. Detalle en [`evidence/agent-account/x402-http-evidence.md`](../evidence/agent-account/x402-http-evidence.md).
+- **Resultado:** `verify` válido con la cuenta-contrato como pagador y `settle` correcto en testnet ([`04450e3d…`](https://stellar.expert/explorer/testnet/tx/04450e3d27471fa3060e085150f7531bc64ff558d81f442552c2120ca23d2ca9)). Un pago de 15 XLM y uno firmado con la clave del dueño hacia el comercio los rechaza la cuenta (`#2` y `#17`) antes de llegar al facilitador.
+- **Facilitador alojado:** el mismo pago, enviado por HTTP al facilitador público de testnet (`channels.openzeppelin.com/x402/testnet`, con una clave gratuita sin registro), también da `verify` válido y `settle` correcto ([`f88a4ab6…`](https://stellar.expert/explorer/testnet/tx/f88a4ab62df544237b368e71469b4e6499f85487b13968fad83e3645e199190a)), con las comisiones pagadas por el firmante del facilitador. Detalle en [`evidence/agent-account/x402-hosted-evidence.md`](../evidence/agent-account/x402-hosted-evidence.md). Su tope de comisión no rechazó el pago, a diferencia del valor por defecto del código local.
+- **Flujo HTTP completo:** un servidor Express con `@x402/express` cobra 1 XLM por `GET /premium` y un agente con `@x402/fetch` recibe el **402**, paga desde su cuenta-contrato y recibe el **200** con el contenido; el facilitador alojado verificó y liquidó el pago ([`fa01effc…`](https://stellar.expert/explorer/testnet/tx/fa01effcf2e15b2a4b2e8460de8f626c9b2630f5b539739dba53337ca88f460c)). Una ruta de 15 XLM, por encima del límite de la cuenta, la rechaza la propia cuenta (`#2`) y no se envía nada a la red. Detalle en [`evidence/agent-account/x402-http-evidence.md`](../evidence/agent-account/x402-http-evidence.md).
 
 Lo que se comprobó al leer la [especificación del esquema `exact` de Stellar](https://github.com/coinbase/x402/blob/main/specs/schemes/exact/scheme_exact_stellar.md) y el código de `@x402/stellar`:
 
@@ -99,6 +99,18 @@ Lo que **no** está resuelto:
 - El registro de pagos tiene el mismo tope que en el vault (100 entradas).
 - La lógica de la política está duplicada respecto al vault. Una versión definitiva debería compartirla en una biblioteca, o expresarse como una política de las cuentas inteligentes de OpenZeppelin (ver [POSICIONAMIENTO.md](POSICIONAMIENTO.md)).
 
+## Auditoría estática
+
+`cargo scout-audit` sobre la cuenta, ejecutado en la CI (informe en el artefacto `scout-report` de cada corrida): **0 críticos · 2 medios · 0 menores · 4 mejoras** antes de añadir los eventos.
+
+| Hallazgo | Nivel | Veredicto |
+|---|---|---|
+| `dynamic_storage`: el registro de pagos es un `Vec` en storage persistente | Medio | **Riesgo aceptado**, igual que en el vault: está acotado a 100 entradas |
+| `dos_unexpected_revert_with_storage`: `push_back` sobre el registro «sin control de acceso» | Medio | **Falso positivo.** El control de acceso es la verificación de la firma ed25519 al principio de `__check_auth`: con una firma inválida el host aborta antes de llegar a esa línea |
+| `storage_change_events` ×4: `set_policy`, `pause`, `unpause` y `set_agent_key` no emitían eventos | Mejora | **Era un hallazgo real, corregido.** Ahora emiten `PolicyUpdated`, `PausedChanged` y `AgentKeyRotated`, con un test (`every_admin_change_emits_an_event`). Las cuentas de testnet de esta evidencia se redesplegaron con esa versión |
+
+Como la cuenta no tiene hallazgos críticos, la CI ya la trata igual que al vault: **falla si scout encuentra uno**.
+
 ## Pruebas
 
-22 tests en `contracts/agent-account/src/test.rs`, con firmas ed25519 reales y `try_invoke_contract_check_auth`, la forma que ofrece el SDK de probar una cuenta personalizada: política, ventana móvil, varias transferencias en una autorización, llamadas no soportadas, firma incorrecta, firma del dueño usada como la del agente, ruta de recuperación, pausa, rotación de clave y constructor.
+23 tests en `contracts/agent-account/src/test.rs`, con firmas ed25519 reales y `try_invoke_contract_check_auth`, la forma que ofrece el SDK de probar una cuenta personalizada: política, ventana móvil, varias transferencias en una autorización, llamadas no soportadas, firma incorrecta, firma del dueño usada como la del agente, ruta de recuperación, pausa, rotación de clave, eventos de administración y constructor.

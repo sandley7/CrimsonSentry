@@ -24,6 +24,8 @@ RELAYER=$(echo "$keys" | python -c "import sys,json; print(json.load(sys.stdin)[
 
 echo "==> Building"
 stellar contract build --package agent-account
+mkdir -p evidence/agent-account
+sha256sum target/wasm32v1-none/release/agent_account.wasm | cut -d' ' -f1 > evidence/agent-account/wasm-sha256.txt
 
 POLICY=$(printf '{"min_amount":"%s","tx_limit":"%s","daily_limit":"%s","max_payments_per_day":5,"allowlist":["%s"]}' \
   "$((1 * STROOPS))" "$((10 * STROOPS))" "$((25 * STROOPS))" "$SHOP")

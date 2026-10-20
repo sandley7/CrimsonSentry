@@ -59,11 +59,11 @@ Copia de cada transacción citada en los documentos, tomada de Horizon, para que
 | 2026-10-18 06:44:52 | [`ef65d1892c66e6c8…`](txs/ef65d1892c66e6c81795313745355787c1585ceb76ef16629ee5fba8b18b0d42.json) | 5256461 | ⛔ falló (revertida) | `README.md`, `evidence/agent-demo-20261018-014117.md` |
 | 2026-10-18 06:44:57 | [`1b0c399d1dc8f08a…`](txs/1b0c399d1dc8f08a9a6b2eac210cea330bd42662f96265f2c31d3916fb16683b.json) | 5256462 | ⛔ falló (revertida) | `evidence/agent-demo-20261018-014117.md` |
 | 2026-10-18 06:45:32 | [`71caf600b40a47ea…`](txs/71caf600b40a47eaa69c8eb8e2958e5c47f54b957c3c7e582dec50913118a0a2.json) | 5256469 | ⛔ falló (revertida) | `README.md`, `evidence/agent-demo-20261018-014117.md` |
-| 2026-10-18 07:19:02 | [`36acaa4b654dd32a…`](txs/36acaa4b654dd32a5ad20fac324ef617c798524a1c0dd42c1c047650ee4f86e9.json) | 5256871 | ✅ éxito | `evidence/agent-account/testnet-evidence.md` |
-| 2026-10-18 07:20:12 | [`9da0097e489929a2…`](txs/9da0097e489929a2e899374e67895ff668b88ec89b9bbe2c2572e18519683a3b.json) | 5256885 | ⛔ falló (revertida) | `evidence/agent-account/testnet-evidence.md` |
-| 2026-10-18 07:20:32 | [`67999ca59e9f8229…`](txs/67999ca59e9f82293064c8bd6fcef77908391769c33bff836c7e14872d6fbdab.json) | 5256889 | ✅ éxito | `evidence/agent-account/testnet-evidence.md` |
-| 2026-10-18 07:20:37 | [`836419020e2dbb2f…`](txs/836419020e2dbb2f0fe6aaa6e6569c506685c192204446acb4060158c6be529a.json) | 5256890 | ⛔ falló (revertida) | `evidence/agent-account/testnet-evidence.md` |
-| 2026-10-18 07:21:02 | [`a4952d49ae25bb47…`](txs/a4952d49ae25bb474e14474166f35b1b542951c28004bc9691ade432162c02cf.json) | 5256895 | ✅ éxito | `evidence/agent-account/testnet-evidence.md` |
-| 2026-10-18 07:48:22 | [`d9658fbbeb012a19…`](txs/d9658fbbeb012a1944da939bef6ae38addf06bd8acdeae4dc23c52a7d54faeef.json) | 5257223 | ✅ éxito | `docs/ARQUITECTURA-B.md`, `evidence/agent-account/x402-http-evidence.md` |
-| 2026-10-18 07:49:17 | [`95b89d385e34a3bd…`](txs/95b89d385e34a3bd9c15ff4c3e93c5b2a4351872e5d17e8f01888293337c0559.json) | 5257234 | ✅ éxito | `docs/ARQUITECTURA-B.md`, `evidence/agent-account/x402-evidence.md` |
-| 2026-10-18 07:49:37 | [`576f8b08d93dd4b1…`](txs/576f8b08d93dd4b11ae40ab55fd3ce77a7998c9752f98430c600edd072a244d9.json) | 5257238 | ✅ éxito | `docs/ARQUITECTURA-B.md`, `evidence/agent-account/x402-hosted-evidence.md` |
+| 2026-10-20 06:09:07 | [`60e01f5fbb454284…`](txs/60e01f5fbb4542845930744072259fc4bc6cda8bf4954488e5270732d21c4416.json) | 5290592 | ✅ éxito | `evidence/agent-account/testnet-evidence.md` |
+| 2026-10-20 06:09:47 | [`03ebbf249deb13b8…`](txs/03ebbf249deb13b887c00f4f1c9fbaa96cef7535a66c4c8fa934d88c36bb4d75.json) | 5290600 | ⛔ falló (revertida) | `evidence/agent-account/testnet-evidence.md` |
+| 2026-10-20 06:10:07 | [`361b97174bfd0d89…`](txs/361b97174bfd0d89b6847c7b13ee9a20f277bfc16a6064a66ca2d2371d8dae1c.json) | 5290604 | ✅ éxito | `evidence/agent-account/testnet-evidence.md` |
+| 2026-10-20 06:10:12 | [`4b778eadf7ba9324…`](txs/4b778eadf7ba93246edc014803624c4b839363841a0c50938336f9cbc2330af9.json) | 5290605 | ⛔ falló (revertida) | `evidence/agent-account/testnet-evidence.md` |
+| 2026-10-20 06:10:37 | [`424e147704411bbf…`](txs/424e147704411bbfd6769aead1e25584df6a152e1437f40a1e87691b9fdf791c.json) | 5290610 | ✅ éxito | `evidence/agent-account/testnet-evidence.md` |
+| 2026-10-20 06:11:32 | [`04450e3d27471fa3…`](txs/04450e3d27471fa3060e085150f7531bc64ff558d81f442552c2120ca23d2ca9.json) | 5290621 | ✅ éxito | `docs/ARQUITECTURA-B.md`, `evidence/agent-account/x402-evidence.md` |
+| 2026-10-20 06:11:42 | [`f88a4ab62df54423…`](txs/f88a4ab62df544237b368e71469b4e6499f85487b13968fad83e3645e199190a.json) | 5290623 | ✅ éxito | `docs/ARQUITECTURA-B.md`, `evidence/agent-account/x402-hosted-evidence.md` |
+| 2026-10-20 06:12:07 | [`fa01effcf2e15b2a…`](txs/fa01effcf2e15b2a4b2e8460de8f626c9b2630f5b539739dba53337ca88f460c.json) | 5290628 | ✅ éxito | `docs/ARQUITECTURA-B.md`, `evidence/agent-account/x402-http-evidence.md` |
