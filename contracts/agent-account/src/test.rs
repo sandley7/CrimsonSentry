@@ -5,7 +5,7 @@ use super::{AccountError, AgentAccount, AgentAccountClient, Ceilings, Policy, Si
 use ed25519_dalek::{Signer, SigningKey};
 use soroban_sdk::{
     auth::{Context, ContractContext},
-    testutils::{Address as _, Ledger},
+    testutils::{Address as _, Events, Ledger},
     token::StellarAssetClient,
     vec, Address, BytesN, Env, IntoVal, Symbol, Vec,
 };
@@ -437,6 +437,30 @@ fn admin_functions_need_the_owner_signature() {
         .client
         .try_set_agent_key(&pubkey(&s.env, &SigningKey::from_bytes(&[4u8; 32])))
         .is_err());
+}
+
+/// Scout does not recognise `#[contractevent]`, so prove here that every admin change emits one.
+#[test]
+fn every_admin_change_emits_an_event() {
+    let s = setup();
+    let events = |s: &Setup| {
+        s.env
+            .events()
+            .all()
+            .filter_by_contract(&s.account)
+            .events()
+            .len()
+    };
+    s.client
+        .set_policy(&policy(&s.env, core::slice::from_ref(&s.shop)));
+    assert_eq!(events(&s), 1);
+    s.client.pause();
+    assert_eq!(events(&s), 1);
+    s.client.unpause();
+    assert_eq!(events(&s), 1);
+    s.client
+        .set_agent_key(&pubkey(&s.env, &SigningKey::from_bytes(&[3u8; 32])));
+    assert_eq!(events(&s), 1);
 }
 
 // ---------------------------------------------------------------------------

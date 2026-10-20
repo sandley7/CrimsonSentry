@@ -32,7 +32,7 @@
 
 use soroban_sdk::{
     auth::{Context, ContractContext, CustomAccountInterface},
-    contract, contracterror, contractimpl, contracttype,
+    contract, contracterror, contractevent, contractimpl, contracttype,
     crypto::Hash,
     panic_with_error, token, Address, Bytes, BytesN, Env, IntoVal, Symbol, TryFromVal, Val, Vec,
 };
@@ -128,6 +128,26 @@ pub struct Status {
     pub remaining_last_24h: i128,
 }
 
+/// Admin changes emit events so a monitor can watch the account without reading its storage.
+#[contractevent]
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub struct PolicyUpdated {
+    pub policy: Policy,
+}
+
+#[contractevent]
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub struct PausedChanged {
+    pub paused: bool,
+}
+
+#[contractevent]
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub struct AgentKeyRotated {
+    pub old_key: BytesN<32>,
+    pub new_key: BytesN<32>,
+}
+
 const DAY_IN_LEDGERS: u32 = 17280;
 const BUMP_AMOUNT: u32 = DAY_IN_LEDGERS * 30;
 const BUMP_THRESHOLD: u32 = DAY_IN_LEDGERS * 7;
@@ -179,18 +199,21 @@ impl AgentAccount {
         let ceilings: Ceilings = read(&env, &DataKey::Ceilings);
         validate_policy(&env, &policy, &ceilings);
         env.storage().instance().set(&DataKey::Policy, &policy);
+        PolicyUpdated { policy }.publish(&env);
         bump(&env);
     }
 
     pub fn pause(env: Env) {
         require_owner(&env);
         env.storage().instance().set(&DataKey::Paused, &true);
+        PausedChanged { paused: true }.publish(&env);
         bump(&env);
     }
 
     pub fn unpause(env: Env) {
         require_owner(&env);
         env.storage().instance().set(&DataKey::Paused, &false);
+        PausedChanged { paused: false }.publish(&env);
         bump(&env);
     }
 
@@ -201,7 +224,9 @@ impl AgentAccount {
         if new_key == owner_key {
             panic_with_error!(&env, AccountError::InvalidPolicy);
         }
+        let old_key: BytesN<32> = read(&env, &DataKey::AgentKey);
         env.storage().instance().set(&DataKey::AgentKey, &new_key);
+        AgentKeyRotated { old_key, new_key }.publish(&env);
         bump(&env);
     }
 

@@ -123,55 +123,55 @@
     "label": "Pago válido de 8 XLM al comercio",
     "result": "✅ SUCCESS",
     "ok": true,
-    "hash": "36acaa4b654dd32a5ad20fac324ef617c798524a1c0dd42c1c047650ee4f86e9"
+    "hash": "60e01f5fbb4542845930744072259fc4bc6cda8bf4954488e5270732d21c4416"
   },
   {
     "group": "Arquitectura B: pagar desde una cuenta-contrato",
     "label": "8 XLM a una dirección fuera de la allowlist, enviado aunque la política ya no lo permite",
     "result": "⛔ FAILED: Error(Contract, #1)",
     "ok": false,
-    "hash": "9da0097e489929a2e899374e67895ff668b88ec89b9bbe2c2572e18519683a3b"
+    "hash": "03ebbf249deb13b887c00f4f1c9fbaa96cef7535a66c4c8fa934d88c36bb4d75"
   },
   {
     "group": "Arquitectura B: pagar desde una cuenta-contrato",
     "label": "Ataque: pago paralelo A de 10 XLM (acumulado 18)",
     "result": "✅ SUCCESS",
     "ok": true,
-    "hash": "67999ca59e9f82293064c8bd6fcef77908391769c33bff836c7e14872d6fbdab"
+    "hash": "361b97174bfd0d89b6847c7b13ee9a20f277bfc16a6064a66ca2d2371d8dae1c"
   },
   {
     "group": "Arquitectura B: pagar desde una cuenta-contrato",
     "label": "Ataque: pago paralelo B de 10 XLM (acumulado 28 > 25)",
     "result": "⛔ FAILED: Error(Contract, #3)",
     "ok": false,
-    "hash": "836419020e2dbb2f0fe6aaa6e6569c506685c192204446acb4060158c6be529a"
+    "hash": "4b778eadf7ba93246edc014803624c4b839363841a0c50938336f9cbc2330af9"
   },
   {
     "group": "Arquitectura B: pagar desde una cuenta-contrato",
     "label": "El dueño mueve 10 XLM a la dirección de recuperación",
     "result": "✅ SUCCESS",
     "ok": true,
-    "hash": "a4952d49ae25bb474e14474166f35b1b542951c28004bc9691ade432162c02cf"
+    "hash": "424e147704411bbfd6769aead1e25584df6a152e1437f40a1e87691b9fdf791c"
   },
   {
     "group": "Arquitectura B: pagar desde una cuenta-contrato",
     "label": "x402: pago liquidado por el código oficial del facilitador (en local)",
     "result": "✅ SUCCESS",
     "ok": true,
-    "hash": "95b89d385e34a3bd9c15ff4c3e93c5b2a4351872e5d17e8f01888293337c0559"
+    "hash": "04450e3d27471fa3060e085150f7531bc64ff558d81f442552c2120ca23d2ca9"
   },
   {
     "group": "Arquitectura B: pagar desde una cuenta-contrato",
     "label": "x402: pago liquidado por el facilitador alojado de testnet",
     "result": "✅ SUCCESS",
     "ok": true,
-    "hash": "576f8b08d93dd4b11ae40ab55fd3ce77a7998c9752f98430c600edd072a244d9"
+    "hash": "f88a4ab62df544237b368e71469b4e6499f85487b13968fad83e3645e199190a"
   },
   {
     "group": "Arquitectura B: pagar desde una cuenta-contrato",
     "label": "x402 por HTTP: GET /premium devuelve 402, el agente paga desde su cuenta-contrato y recibe 200",
     "result": "✅ SUCCESS",
     "ok": true,
-    "hash": "d9658fbbeb012a1944da939bef6ae38addf06bd8acdeae4dc23c52a7d54faeef"
+    "hash": "fa01effcf2e15b2a4b2e8460de8f626c9b2630f5b539739dba53337ca88f460c"
   }
 ]

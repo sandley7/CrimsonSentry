@@ -1,7 +1,7 @@
 # x402 de punta a punta por HTTP: un agente paga una API desde su cuenta-contrato
 
-- Fecha: 2026-10-18 07:48 UTC
-- Cuenta del agente (contrato): [`CCZZLL4CPKBO3K6EMQ5KMVLSI5JI46HT756UAUCI75ZN4KIU5M27F3JC`](https://stellar.expert/explorer/testnet/contract/CCZZLL4CPKBO3K6EMQ5KMVLSI5JI46HT756UAUCI75ZN4KIU5M27F3JC)
+- Fecha: 2026-10-20 06:12 UTC
+- Cuenta del agente (contrato): [`CB5BHCD6QM3YOXPVBEHEFYSDX4S7IB46J3KBMD3FYUCQTRGJYFKVTWSS`](https://stellar.expert/explorer/testnet/contract/CB5BHCD6QM3YOXPVBEHEFYSDX4S7IB46J3KBMD3FYUCQTRGJYFKVTWSS)
 - **Servidor de recursos:** Express con `@x402/express` (oficial) y el esquema de servidor `@x402/stellar` 2.28, cobrando en XLM nativo (un token SEP-41).
 - **Cliente:** `fetch` envuelto con `@x402/fetch` (oficial) y `AgentAccountScheme` (`client.mjs`), que firma para una cuenta-contrato.
 - **Facilitador:** el alojado de testnet, `https://channels.openzeppelin.com/x402/testnet`, que verifica, liquida y paga las comisiones.
@@ -9,7 +9,7 @@
 | Petición | Resultado |
 |---|---|
 | `GET /premium` sin pagar | HTTP **402** Payment Required (pide 1 XLM a `GC6DTO6S…` en `stellar:testnet`) |
-| `GET /premium` pagando desde la cuenta-contrato | HTTP **200**, cuerpo `{"message":"contenido de pago entregado","price":"1 XLM"}`, liquidado en [`d9658fbb…`](https://stellar.expert/explorer/testnet/tx/d9658fbbeb012a1944da939bef6ae38addf06bd8acdeae4dc23c52a7d54faeef), pagador `CCZZLL4C…` |
+| `GET /premium` pagando desde la cuenta-contrato | HTTP **200**, cuerpo `{"message":"contenido de pago entregado","price":"1 XLM"}`, liquidado en [`fa01effc…`](https://stellar.expert/explorer/testnet/tx/fa01effcf2e15b2a4b2e8460de8f626c9b2630f5b539739dba53337ca88f460c), pagador `CB5BHCD6…` |
 | `GET /premium-caro` (15 XLM, por encima del límite por pago) | el agente no pudo pagar: la cuenta rechazó la autorización (#2); no se envió nada a la red |
 | `GET /free` (sin cobro) | HTTP 200 |
 

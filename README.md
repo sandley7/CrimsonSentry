@@ -323,7 +323,7 @@ source scripts/env.sh        # Git Bash
 ### Tests
 
 ```bash
-cargo test                   # vault v2: 37 tests · cuenta del agente (arquitectura B): 22 tests
+cargo test                   # vault v2: 37 tests · cuenta del agente (arquitectura B): 23 tests
 cd tools && npm test         # escáner: 16 tests
 ```
 
