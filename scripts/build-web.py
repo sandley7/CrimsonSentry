@@ -90,6 +90,7 @@ def main():
     for name in ("checks.js", "owasp.js"):
         copy(ROOT / "tools" / "scanner" / name, SITE / "tools" / "scanner" / name)
     copy(ROOT / "evidence" / "wasm-sha256.txt", SITE / "evidence" / "wasm-sha256.txt")
+    copy(ROOT / "evidence" / "agent-account" / "wasm-sha256.txt", SITE / "evidence" / "agent-account" / "wasm-sha256.txt")
     shutil.copytree(ROOT / "evidence" / "archive" / "txs", SITE / "evidence" / "archive" / "txs")
     copy(ROOT / "docs" / "logo.jpg", SITE / "logo.jpg")
     print(f"Sitio armado en {SITE} ({n} transacciones en evidence.json)")

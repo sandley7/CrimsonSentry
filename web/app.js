@@ -45,7 +45,7 @@ const latest = { pay: 0, policy: 0, scan: 0 }; // only the newest answer is draw
 // 1. The vault, live
 // ---------------------------------------------------------------------------
 
-let vaults = { showcase: FALLBACK_VAULT, official: FALLBACK_VAULT };
+let vaults = { showcase: FALLBACK_VAULT, official: FALLBACK_VAULT, account: FALLBACK_VAULT };
 
 async function defaultVault() {
   const fromUrl = new URLSearchParams(location.search).get('vault');
@@ -73,7 +73,7 @@ function renderStatus(s, id) {
         ${row('Gastado en 24 h', `${esc(xlm(s.spent_last_24h))} · ${s.payments_last_24h} pago(s)`)}
         ${row('Queda en la ventana', esc(xlm(s.remaining_last_24h)))}
         ${row('Dueño', addr(s.owner))}
-        ${row('Agente', addr(s.agent))}
+        ${row(s.isAccount ? 'Agente (clave)' : 'Agente', addr(s.agent))}
         ${s.recovery ? row('Recuperación (fija)', addr(s.recovery)) : ''}
       </table>
       <table>
@@ -102,6 +102,8 @@ async function loadVault(id) {
     renderStatus(status, id);
     $('dest').value = status.policy.allowlist[0] ?? '';
     for (const sec of ['agent', 'owner', 'scanner']) $(sec).hidden = false;
+    // An agent account has no pay(): its payments are token transfers authorized by __check_auth.
+    $('agent').hidden = Boolean(status.isAccount);
     $('owner').hidden = !status.ceilings;
     if (status.ceilings) {
       $('new-tx').value = Number(status.ceilings.max_tx_limit / STROOPS_PER_XLM) + 10;
@@ -212,7 +214,8 @@ const VERDICT = {
 };
 
 async function collect() {
-  const expectedWasm = await fetch('./evidence/wasm-sha256.txt', { cache: 'no-store' }).then((r) => (r.ok ? r.text() : null)).then((t) => t?.trim() ?? null).catch(() => null);
+  const hashFile = status.isAccount ? './evidence/agent-account/wasm-sha256.txt' : './evidence/wasm-sha256.txt';
+  const expectedWasm = await fetch(hashFile, { cache: 'no-store' }).then((r) => (r.ok ? r.text() : null)).then((t) => t?.trim() ?? null).catch(() => null);
   const [contractInfo, baseReserve, agentAccount, ownerAccount, agentActivity] = await Promise.all([
     getContractInfo(conn, vaultId),
     getBaseReserve(conn),

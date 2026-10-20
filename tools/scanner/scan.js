@@ -22,6 +22,8 @@ const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..', '..');
 const DEFAULT_WASM_FILE = process.env.EXPECTED_WASM_FILE
   ? resolve(ROOT, process.env.EXPECTED_WASM_FILE)
   : join(ROOT, 'evidence', 'wasm-sha256.txt');
+// Agent accounts (contracts/agent-account) have their own build, so their own reference hash.
+const ACCOUNT_WASM_FILE = join(ROOT, 'evidence', 'agent-account', 'wasm-sha256.txt');
 const LIGHT = { green: '🟢', yellow: '🟡', red: '🔴' };
 const EXIT = { green: 0, yellow: 1, red: 2 };
 
@@ -74,8 +76,9 @@ async function collect(conn) {
     allowlistAccounts[a] = (await getAccount(conn, a)) !== null;
   }));
   const recoveryAccount = status.recovery?.startsWith('G') ? await getAccount(conn, status.recovery) : undefined;
+  const wasmFile = status.isAccount ? ACCOUNT_WASM_FILE : DEFAULT_WASM_FILE;
   const expectedWasm = args['expected-wasm']
-    ?? (existsSync(DEFAULT_WASM_FILE) ? readFileSync(DEFAULT_WASM_FILE, 'utf8').trim() : null);
+    ?? (existsSync(wasmFile) ? readFileSync(wasmFile, 'utf8').trim() : null);
   const feeBuffer = BigInt(Math.round(feeBufferXlm * Number(STROOPS_PER_XLM)));
   return {
     status, contractInfo, baseReserve, agentAccount, ownerAccount, agentActivity,
@@ -88,9 +91,9 @@ function printReport(conn, data, results, overall) {
   const line = '─'.repeat(78);
   console.log(`\n CrimsonSentry · escáner de seguridad del agente   (red: ${conn.name})`);
   console.log(line);
-  console.log(` Vault   ${args.vault}`);
+  console.log(` ${s.isAccount ? 'Cuenta' : 'Vault '}  ${args.vault}${s.isAccount ? '  (cuenta del agente, arquitectura B)' : ''}`);
   console.log(`         ${conn.expertUrl}/contract/${args.vault}`);
-  console.log(` Agente  ${s.agent}`);
+  console.log(` Agente  ${s.agent}${s.isAccount ? '  (dirección clásica de su clave)' : ''}`);
   console.log(` Dueño   ${s.owner}`);
   console.log(` Saldo del vault ${xlm(s.balance)} · ${s.paused ? 'EN PAUSA' : 'activo'}`);
   console.log(line);

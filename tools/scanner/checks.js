@@ -47,13 +47,22 @@ function activeSigners(account) {
 
 function c1AgentOwnFunds(d) {
   const t = ['C1', 'Saldo propio del agente', ['ASI02', 'ASI03', 'ASI10']];
-  if (!d.agentAccount) return result(...t, 'green', 'La cuenta del agente no existe en la red: no tiene fondos propios.');
+  const acct = Boolean(d.status.isAccount);
+  if (!d.agentAccount) {
+    return result(...t, 'green', acct
+      ? 'La clave del agente no controla ninguna cuenta clásica en la red: si se filtra, solo puede gastar dentro de la política.'
+      : 'La cuenta del agente no existe en la red: no tiene fondos propios.');
+  }
   const spendable = spendableNative(d.agentAccount, d.baseReserve);
   const txLimit = d.status.policy.tx_limit;
   const vault = d.status.balance;
   const ratio = vault > 0n && spendable >= vault ? ` (${(Number(spendable) / Number(vault)).toFixed(1)}× lo que protege el vault)` : '';
-  const detail = `El agente puede mover ${xlm(spendable)} fuera del vault${ratio}.`;
-  const fix = 'Devolver el excedente al dueño y dejar al agente solo con lo necesario para fees (o que un relayer pague los fees con fee-bump).';
+  const detail = acct
+    ? `La clave del agente también controla una cuenta clásica con ${xlm(spendable)} que se puede mover sin pasar por la política${ratio}.`
+    : `El agente puede mover ${xlm(spendable)} fuera del vault${ratio}.`;
+  const fix = acct
+    ? 'Vaciar esa cuenta clásica, o usar para el agente de la cuenta-contrato una clave que no controle fondos.'
+    : 'Devolver el excedente al dueño y dejar al agente solo con lo necesario para fees (o que un relayer pague los fees con fee-bump).';
   if (spendable > txLimit) return result(...t, 'red', `${detail} Puede pagar sin pasar por ninguna regla.`, fix);
   if (spendable > d.feeBuffer) return result(...t, 'yellow', `${detail} Es más de lo que necesita para fees.`, fix);
   return result(...t, 'green', `${detail} Solo cubre fees.`);
@@ -146,6 +155,9 @@ function c8WindowUsage(d) {
 
 function c9FailedAttempts(d) {
   const t = ['C9', 'Intentos fallidos del agente (24h)', ['ASI01', 'ASI10']];
+  if (d.status.isAccount) {
+    return result(...t, 'green', 'No aplica a una cuenta-contrato: las transacciones las envía el facilitador (el relayer), no la clave del agente, así que los intentos rechazados no aparecen en la cuenta de esa clave.');
+  }
   const since = d.now - DAY_MS;
   // Horizon also lists txs sent by others that merely touch the agent's account.
   const failed = d.agentActivity.transactions.filter(

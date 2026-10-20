@@ -111,6 +111,10 @@ Lo que **no** está resuelto:
 
 Como la cuenta no tiene hallazgos críticos, la CI ya la trata igual que al vault: **falla si scout encuentra uno**.
 
+## El escáner también la audita
+
+`node tools/scanner/scan.js --vault <cuenta>` y la demo web (botón «Cuenta del agente») leen la clave del agente del almacenamiento de la cuenta y aplican a su dirección clásica los chequeos del agente: por ejemplo, si esa clave controla además una cuenta con fondos, una filtración los mueve fuera de la política. Detalle y diferencias con un vault en [SCANNER.md](SCANNER.md#cuentas-del-agente-arquitectura-b). Sobre la cuenta de esta evidencia da 🟡 2 · 🟢 15 (la clave del dueño es una sola y la cuenta de recuperación también).
+
 ## Pruebas
 
 23 tests en `contracts/agent-account/src/test.rs`, con firmas ed25519 reales y `try_invoke_contract_check_auth`, la forma que ofrece el SDK de probar una cuenta personalizada: política, ventana móvil, varias transferencias en una autorización, llamadas no soportadas, firma incorrecta, firma del dueño usada como la del agente, ruta de recuperación, pausa, rotación de clave, eventos de administración y constructor.
