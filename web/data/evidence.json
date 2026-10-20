@@ -117,5 +117,61 @@
     "result": "⛔ FAILED on-chain — Error(Contract, #7) Paused",
     "ok": false,
     "hash": "71caf600b40a47eaa69c8eb8e2958e5c47f54b957c3c7e582dec50913118a0a2"
+  },
+  {
+    "group": "Arquitectura B: pagar desde una cuenta-contrato",
+    "label": "Pago válido de 8 XLM al comercio",
+    "result": "✅ SUCCESS",
+    "ok": true,
+    "hash": "36acaa4b654dd32a5ad20fac324ef617c798524a1c0dd42c1c047650ee4f86e9"
+  },
+  {
+    "group": "Arquitectura B: pagar desde una cuenta-contrato",
+    "label": "8 XLM a una dirección fuera de la allowlist, enviado aunque la política ya no lo permite",
+    "result": "⛔ FAILED: Error(Contract, #1)",
+    "ok": false,
+    "hash": "9da0097e489929a2e899374e67895ff668b88ec89b9bbe2c2572e18519683a3b"
+  },
+  {
+    "group": "Arquitectura B: pagar desde una cuenta-contrato",
+    "label": "Ataque: pago paralelo A de 10 XLM (acumulado 18)",
+    "result": "✅ SUCCESS",
+    "ok": true,
+    "hash": "67999ca59e9f82293064c8bd6fcef77908391769c33bff836c7e14872d6fbdab"
+  },
+  {
+    "group": "Arquitectura B: pagar desde una cuenta-contrato",
+    "label": "Ataque: pago paralelo B de 10 XLM (acumulado 28 > 25)",
+    "result": "⛔ FAILED: Error(Contract, #3)",
+    "ok": false,
+    "hash": "836419020e2dbb2f0fe6aaa6e6569c506685c192204446acb4060158c6be529a"
+  },
+  {
+    "group": "Arquitectura B: pagar desde una cuenta-contrato",
+    "label": "El dueño mueve 10 XLM a la dirección de recuperación",
+    "result": "✅ SUCCESS",
+    "ok": true,
+    "hash": "a4952d49ae25bb474e14474166f35b1b542951c28004bc9691ade432162c02cf"
+  },
+  {
+    "group": "Arquitectura B: pagar desde una cuenta-contrato",
+    "label": "x402: pago liquidado por el código oficial del facilitador (en local)",
+    "result": "✅ SUCCESS",
+    "ok": true,
+    "hash": "95b89d385e34a3bd9c15ff4c3e93c5b2a4351872e5d17e8f01888293337c0559"
+  },
+  {
+    "group": "Arquitectura B: pagar desde una cuenta-contrato",
+    "label": "x402: pago liquidado por el facilitador alojado de testnet",
+    "result": "✅ SUCCESS",
+    "ok": true,
+    "hash": "576f8b08d93dd4b11ae40ab55fd3ce77a7998c9752f98430c600edd072a244d9"
+  },
+  {
+    "group": "Arquitectura B: pagar desde una cuenta-contrato",
+    "label": "x402 por HTTP: GET /premium devuelve 402, el agente paga desde su cuenta-contrato y recibe 200",
+    "result": "✅ SUCCESS",
+    "ok": true,
+    "hash": "d9658fbbeb012a1944da939bef6ae38addf06bd8acdeae4dc23c52a7d54faeef"
   }
 ]

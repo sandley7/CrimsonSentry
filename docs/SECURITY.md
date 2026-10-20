@@ -61,7 +61,7 @@ No debe utilizarse para custodiar fondos reales. El informe de Scout es una audi
 
 ## Respuesta a vulnerabilidades
 
-No publiques detalles explotables de una vulnerabilidad en un issue público. Usa el canal privado de reporte de vulnerabilidades de GitHub si está habilitado para el repositorio; de lo contrario, contacta en privado a los mantenedores antes de divulgarla públicamente.
+No publiques detalles explotables de una vulnerabilidad en un issue público. El repositorio tiene habilitado el **reporte privado de vulnerabilidades** de GitHub: en la pestaña *Security* elige *Report a vulnerability*. Solo lo ven los mantenedores. Este es un prototipo de testnet, así que no hay recompensas ni plazos garantizados, pero se agradece el aviso.
 
 ## Recomendaciones antes de producción
 

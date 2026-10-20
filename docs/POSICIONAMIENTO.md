@@ -31,6 +31,7 @@ El plan para comprobar estas hipótesis está en [VALIDACION.md](VALIDACION.md).
 | **Privy** (motor de políticas) | Fuera de la cadena, en la infraestructura del proveedor, antes de firmar | Varias | Tokens y cadenas permitidos, topes por transferencia o por ventana, listas de destinatarios y de contratos | Hay que confiar en el proveedor; la regla no se ve en la cadena |
 | **Turnkey** (políticas y pagos para agentes) | Dentro de un enclave del proveedor, antes de producir la firma | Varias | Destinatario, contrato, función, cadena y límite de valor; aprobación humana para montos altos | Igual: la garantía es la del enclave y su configuración |
 | **Coinbase Agentic Wallets** | Wallets con custodia MPC del proveedor | Varias | Límites de gasto programables y topes por sesión | Orientado al ecosistema de Coinbase y a x402 |
+| **Controles de gasto del cliente x402** (`@x402/fetch` 2.28) | En el propio cliente, fuera de la cadena | Varias | Por defecto solo USDC y hasta 1 USD por pago; se afinan por activo | Los controla quien ejecuta el cliente: un cliente comprometido puede saltárselos. La cuenta-contrato de la arquitectura B aplica la política dentro de la cadena |
 | **Safe** (módulo de allowance) y **Zodiac Roles** | En la cadena, en contratos de EVM | EVM | Allowance por token con reinicio por intervalo; permisos por rol | Mismo enfoque on-chain, pero no están en Stellar |
 | **Delegaciones ERC-7715 / ERC-7710** y claves de sesión | En la cadena, en cuentas inteligentes de EVM | EVM | Permisos acotados por contrato, función, monto y tiempo | Ídem: no están en Stellar |
 | **OpenZeppelin, cuentas inteligentes de Stellar** | En la cadena, en Stellar, como política de una cuenta-contrato | Stellar | Política de límite de gasto en ventana móvil y políticas de umbral (multifirma). En la documentación consultada **no aparece** una política de lista de destinos | Es la alternativa más cercana y una **base posible** para la arquitectura B (ver abajo) |
@@ -47,7 +48,7 @@ El plan para comprobar estas hipótesis está en [VALIDACION.md](VALIDACION.md).
 **Lo que no aporta, o es más débil:**
 
 1. **No es producción.** Los proveedores de la tabla ofrecen servicios operados; esto es un prototipo de testnet sin auditoría independiente.
-2. **La arquitectura actual (A) no protege el saldo propio del agente** ni intercepta x402 ni MPP, que firman desde la cuenta del agente. Eso exige la arquitectura B (cuenta-contrato). Está en el [README](../README.md#limitaciones-conocidas).
+2. **La arquitectura actual (A) no protege el saldo propio del agente** ni intercepta x402 ni MPP, que firman desde la cuenta del agente. Eso exige la arquitectura B (cuenta-contrato), que ya tiene un [prototipo probado en testnet](ARQUITECTURA-B.md), incluido un flujo x402 completo por HTTP contra el facilitador alojado. Las limitaciones están en el [README](../README.md#limitaciones-conocidas).
 3. **Solo Stellar.** Las soluciones multicadena cubren más casos.
 4. **El contrato es inmutable** y el dueño tiene una sola clave por defecto.
 
@@ -56,7 +57,8 @@ El plan para comprobar estas hipótesis está en [VALIDACION.md](VALIDACION.md).
 Una lectura honesta del feedback es que CrimsonSentry no debe competir como wallet, sino como **capa de seguridad que se compone con lo que ya existe**:
 
 - **Hoy:** un vault que custodia fondos y un escáner que audita.
-- **Siguiente paso técnico (hipótesis, sin verificar):** expresar estas mismas reglas como una **política compatible con las cuentas inteligentes de OpenZeppelin en Stellar**. Eso daría compatibilidad con x402, porque los pagos saldrían de una cuenta-contrato, y evitaría reinventar el límite de gasto. Habría que comprobar con su documentación técnica que una política de lista de destinos y de contador de pagos encaja en su modelo.
+- **Hecho:** un prototipo de cuenta-contrato propia ([ARQUITECTURA-B.md](ARQUITECTURA-B.md)), con el que el facilitador oficial y el alojado de x402 liquidan pagos. Sigue sin auditar y cuesta unas 25 veces más en comisiones que una transferencia clásica.
+- **Siguiente paso técnico (hipótesis, sin verificar):** expresar estas mismas reglas como una **política compatible con las cuentas inteligentes de OpenZeppelin en Stellar**. Eso evitaría mantener una cuenta propia y reinventar el límite de gasto. Habría que comprobar con su documentación técnica que una política de lista de destinos y de contador de pagos encaja en su modelo.
 - **Después:** un SDK pequeño, para integrar sin la CLI, y una guía de integración de una página.
 
 ## Fuentes consultadas (06/10/2026)
