@@ -44,6 +44,24 @@ Código de salida: `0` verde, `1` amarillo, `2` rojo, `64` argumentos incompleto
 | C16 | Fondos del vault | Saldo menor que un pago máximo permitido. |
 | C17 | Dirección de recuperación y techos | Solo aplica a la v2. 🔴 si la recuperación coincide con el dueño o el agente; 🟡 si su cuenta no existe o tiene una sola clave, o si el techo diario alcanza para vaciar el vault en 24 h. En un vault v1 (sin recuperación fija ni techos) sale 🟡 con la recomendación de migrar a la v2. |
 
+## Cuentas del agente (arquitectura B)
+
+El mismo comando audita una [cuenta del agente](ARQUITECTURA-B.md) (el contrato de `contracts/agent-account`):
+
+```bash
+node scanner/scan.js --vault <C... de la cuenta>
+```
+
+Una cuenta no tiene una dirección de agente, sino una **clave ed25519** guardada en su almacenamiento. El escáner lee esa clave del almacenamiento de la instancia, deriva **la dirección clásica de esa misma clave** y aplica a esa dirección los chequeos que miran al agente. Así tienen sentido: si la clave del agente controla además una cuenta clásica con fondos, una filtración los mueve sin pasar por la política (C1), y se comprueban sus activos (C2), sus firmantes (C3) y sus pagos directos (C10).
+
+Diferencias con un vault:
+
+- **C9 no aplica.** Las transacciones las envía el facilitador (el relayer), no la clave del agente, así que los intentos rechazados no aparecen en la cuenta de esa clave. Sale 🟢 con ese aviso.
+- **C13** compara con el hash propio de la cuenta, `evidence/agent-account/wasm-sha256.txt`, no con el del vault.
+- Los demás chequeos (política, ventana, techos, recuperación, token, TTL, fondos) usan el estado de la cuenta tal cual.
+
+La demo web hace lo mismo con el botón «Cuenta del agente».
+
 ## Límites de observabilidad
 
 - Horizon y Soroban RPC son fuentes externas; disponibilidad y retrasos afectan los resultados.

@@ -158,7 +158,7 @@ node scanner/scan.js --vault <C...> --json        # para CI o un dashboard
 node scanner/scan.js --vault CB5X32K4QZLPO6YZYE2KWZW2QAXXUT5AJSJJFF2OP73IYCFMCYZJEBXG --expected-wasm 8f063bdcefa17824502ed78aa6cecca68727fad558c8fb26de2c69d8257c6bef   # vault v1
 ```
 
-Por defecto compara el WASM on-chain con el hash de [`evidence/wasm-sha256.txt`](evidence/wasm-sha256.txt) (el de la v2). Código de salida: `0` verde · `1` amarillo · `2` rojo.
+Por defecto compara el WASM on-chain con el hash de [`evidence/wasm-sha256.txt`](evidence/wasm-sha256.txt) (el de la v2). Código de salida: `0` verde · `1` amarillo · `2` rojo. También audita una [cuenta del agente](docs/ARQUITECTURA-B.md) (arquitectura B): el mismo comando, derivando la dirección clásica de su clave ed25519 ([cómo](docs/SCANNER.md#cuentas-del-agente-arquitectura-b)).
 
 | # | Chequeo | 🔴 / 🟡 cuando… | OWASP Agentic 2026 |
 |---|---|---|---|
@@ -324,7 +324,7 @@ source scripts/env.sh        # Git Bash
 
 ```bash
 cargo test                   # vault v2: 37 tests · cuenta del agente (arquitectura B): 23 tests
-cd tools && npm test         # escáner: 16 tests
+cd tools && npm test         # escáner: 19 tests
 ```
 
 Los tests del contrato cubren:

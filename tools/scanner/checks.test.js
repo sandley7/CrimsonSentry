@@ -184,3 +184,40 @@ test('a daily ceiling that can empty the vault in 24h is yellow', () => {
   d.status.ceilings = { max_tx_limit: 200000000n, max_daily_limit: 800000000n };
   assert.equal(byId(runChecks(d)).C17, 'yellow');
 });
+
+// ---------------------------------------------------------------------------
+// Agent accounts (architecture B): the "agent" is the classic address of the account's ed25519 key
+// ---------------------------------------------------------------------------
+
+function agentAccountSnapshot() {
+  const d = hardened();
+  d.status.isAccount = true;
+  d.agentAccount = null; // the key controls no classic account
+  return d;
+}
+
+test('agent account: a key that controls no classic account is green in C1', () => {
+  const r = runChecks(agentAccountSnapshot()).find((x) => x.id === 'C1');
+  assert.equal(r.color, 'green');
+  assert.match(r.detail, /clave del agente/);
+});
+
+test('agent account: a key that also controls a funded classic account is red in C1', () => {
+  const d = agentAccountSnapshot();
+  d.agentAccount = account(AGENT, '9999.0000000');
+  const r = runChecks(d).find((x) => x.id === 'C1');
+  assert.equal(r.color, 'red');
+  assert.match(r.detail, /misma|también controla una cuenta clásica/);
+});
+
+test('agent account: C9 does not apply, because the facilitator sends the transactions', () => {
+  const d = agentAccountSnapshot();
+  d.agentActivity.transactions = [
+    { hash: 'abc', source_account: AGENT, successful: false, created_at: '2026-09-23T07:25:42Z' },
+    { hash: 'def', source_account: AGENT, successful: false, created_at: '2026-09-23T07:25:43Z' },
+    { hash: 'ghi', source_account: AGENT, successful: false, created_at: '2026-09-23T07:25:44Z' },
+  ];
+  const r = runChecks(d).find((x) => x.id === 'C9');
+  assert.equal(r.color, 'green');
+  assert.match(r.detail, /No aplica/);
+});

@@ -4,7 +4,7 @@
 // secret keys: contract reads are simulations through Stellar RPC, and account
 // data comes from Horizon.
 
-import { contract, rpc, xdr, Asset, Networks } from '@stellar/stellar-sdk';
+import { contract, rpc, xdr, Asset, Networks, StrKey } from '@stellar/stellar-sdk';
 
 // This module also runs in the browser (the public demo reuses it), so it only
 // uses APIs that Node and browsers share: fetch and WebCrypto.
@@ -62,7 +62,35 @@ export async function getVaultStatus(conn, vaultId) {
     rpcUrl: conn.rpcUrl,
   });
   const tx = await client.get_status();
-  return tx.result;
+  const status = tx.result;
+  // An agent account (architecture B, contracts/agent-account) has no `agent` address: the agent is an
+  // ed25519 key kept in the contract's storage. Derive the classic address of that same key, so the checks
+  // that look at the agent's own funds and signers still apply: if the key also controls a funded classic
+  // account, a leaked key moves that money without going through the policy.
+  if (status.agent === undefined && status.owner !== undefined) {
+    const { agentKey } = await getAccountKeys(conn, vaultId);
+    if (agentKey) {
+      status.agent = StrKey.encodeEd25519PublicKey(Uint8Array.from(agentKey));
+      status.isAccount = true;
+    }
+  }
+  return status;
+}
+
+/** The raw ed25519 keys an agent account keeps in its instance storage (null when absent). */
+export async function getAccountKeys(conn, contractId) {
+  try {
+    const inst = await conn.server.getContractData(contractId, xdr.ScVal.scvLedgerKeyContractInstance());
+    const storage = inst.val.contractData.val.instance.storage ?? [];
+    // In SDK 17 a symbol is an XdrString and a byte string an object holding the bytes in `.value`.
+    const bytes = (name) => {
+      const entry = storage.find((e) => e.key.type === 'scvVec' && String(e.key.vec?.[0]?.sym) === name);
+      return entry?.val?.bytes?.value ?? null;
+    };
+    return { agentKey: bytes('AgentKey'), ownerKey: bytes('OwnerKey') };
+  } catch {
+    return { agentKey: null, ownerKey: null };
+  }
 }
 
 /** On-chain facts about the contract itself: code hash and how long the instance stays live. */
