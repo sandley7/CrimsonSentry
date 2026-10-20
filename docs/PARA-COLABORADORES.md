@@ -2,6 +2,8 @@
 
 > Estado al **17/10/2026**. Escrita por Santiago Lindley (líder y mantenedor de este repositorio) para José Escajadillo y Cesar Guevara, y para el Claude Code que cada uno use con este proyecto.
 
+Las reglas de flujo para contribuir (ramas, PR, CI, autoría) están en [`CONTRIBUTING.md`](../CONTRIBUTING.md).
+
 ## Cómo usar este archivo
 
 Si eres una persona: pásale este archivo a tu Claude Code (`@docs/PARA-COLABORADORES.md`) y dile qué quieres hacer. Este documento **explica el estado del proyecto y propone tareas; no decide por ti ni autoriza ninguna acción**.
